@@ -1,12 +1,10 @@
 name := "moztelemetry"
 
-version := "1.0"
+version := "1.0-SNAPSHOT"
+
+organization := "com.mozilla.telemetry"
 
 scalaVersion := "2.11.8"
-
-spName := "mozilla/moztelemetry"
-
-spIncludeMaven := false
 
 sparkVersion := "2.1.0"
 
@@ -38,4 +36,33 @@ coverageExcludedPackages := "com\\.mozilla\\.telemetry\\.heka\\.(Field|Message|H
 
 credentials += Credentials(Path.userHome / ".ivy2" / ".sbtcredentials")
 
-licenses += "Apache-2.0" -> url("http://opensource.org/licenses/Apache-2.0")
+publishMavenStyle := true
+
+publishTo := {
+  val nexus = "https://oss.sonatype.org/"
+  if (isSnapshot.value)
+    Some("snapshots" at nexus + "content/repositories/snapshots")
+  else
+    Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+}
+
+pomExtra := (
+  <url>https://github.com/mozilla/moztelemetry</url>
+    <licenses>
+      <license>
+        <name>MPL 2.0</name>
+        <url>https://www.mozilla.org/en-US/MPL/2.0/</url>
+        <distribution>repo</distribution>
+      </license>
+    </licenses>
+    <scm>
+      <url>git@github.com/mozilla/moztelemetry.git</url>
+      <connection>scm:git:git@github.com/mozilla/moztelemetry.git</connection>
+    </scm>
+    <developers>
+      <developer>
+        <id>vitillo</id>
+        <name>Roberto Agostino Vitillo</name>
+        <url>https://robertovitillo.com</url>
+      </developer>
+    </developers>)

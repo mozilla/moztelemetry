@@ -4,6 +4,13 @@
 # moztelemetry
 Mozilla's Telemetry API for Scala
 
+## Using moztelemetry
+In SBT:
+```
+resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
+libraryDependencies += "com.mozilla.telemetry" %% "moztelemetry" % "1.0-SNAPSHOT"
+```
+
 ## Testing
 To run the tests you have to start a mock S3 service first with moto:
 
