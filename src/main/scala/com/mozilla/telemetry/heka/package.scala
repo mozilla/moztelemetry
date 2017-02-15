@@ -19,8 +19,12 @@ package object heka {
     f.getValueType match {
       case Field.ValueType.BYTES => {
         val bytes = f.valueBytes(0)
-        // Non-UTF8 bytes fields are currently not supported
-        if (bytes.isValidUtf8) bytes.toStringUtf8 else ""
+        // Our JSON bytes fields sometimes contain non-UTF8 strings that can
+        // still be parsed as JSON. For now, we attempt to coerce all bytes
+        // fields to UTF8 strings, as we only have JSON bytes fields. See
+        // https://bugzilla.mozilla.org/show_bug.cgi?id=1339421
+        // for details.
+        bytes.toStringUtf8
       }
       case Field.ValueType.STRING => f.valueString(0)
       case Field.ValueType.BOOL => f.valueBool(0)
