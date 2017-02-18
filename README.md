@@ -19,3 +19,11 @@ pip install moto
 moto_server s3 -p 8001 &
 AWS_ACCESS_KEY_ID=foo AWS_SECRET_ACCESS_KEY=foo sbt test
 ```
+
+## Publishing snapshots
+Read this [article](http://www.loftinspace.com.au/blog/publishing-scala-libraries-to-sonatype.html#publish_snapshot) for how to configure signing.
+Once that is done, all one needs to run is:
+
+```
+sbt publishSigned
+```
