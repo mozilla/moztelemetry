@@ -11,16 +11,17 @@ import java.io.ByteArrayOutputStream
 import com.google.protobuf._
 
 object Resources {
-  val message = {
-    val fields = List(
-      Field("bytes", Some(Field.ValueType.BYTES), valueBytes = Seq(ByteString.copyFromUtf8("foo"))),
-      Field("string", Some(Field.ValueType.STRING), valueString = Seq("foo")),
-      Field("bool", Some(Field.ValueType.BOOL), valueBool = Seq(true)),
-      Field("double", Some(Field.ValueType.DOUBLE), valueDouble = Seq(4.2)),
-      Field("integer", Some(Field.ValueType.INTEGER), valueInteger = Seq(42)))
-
-    Message(ByteString.copyFromUtf8("1234"), 0, payload = Some("payload"), fields = fields)
-  }
+  val message = RichMessage(
+    "1234",
+    Map(
+      "bytes" -> ByteString.copyFromUtf8("foo"),
+      "string" -> "foo",
+      "bool" -> true,
+      "double" -> 4.2,
+      "integer" -> 42L
+    ),
+    Some("payload")
+  )
 
   val header = Header(message.toByteArray.length)
 
