@@ -6,6 +6,8 @@
 
 package com.mozilla.telemetry
 
+import com.google.protobuf.ByteString
+
 package object heka {
   class RichMessage(m: Message) {
     def fieldsAsMap: Map[String, Any] = {
@@ -35,4 +37,27 @@ package object heka {
   }
 
   implicit def messageToRichMessage(m: Message): RichMessage = new RichMessage(m)
+
+  object RichMessage {
+    def apply (uuid: String, fieldsMap: Map[String, Any], payload: Option[String]): Message = {
+      val fields = fieldsMap.toList.map{
+        case (k: String, v: ByteString) => {
+          Field(k, Some(Field.ValueType.BYTES), valueBytes=Seq(v))
+        }
+        case (k: String, v: String) => {
+          Field(k, Some(Field.ValueType.STRING), valueString=Seq(v))
+        }
+        case (k: String, v: Boolean) => {
+          Field(k, Some(Field.ValueType.BOOL), valueBool=Seq(v))
+        }
+        case (k: String, v: Double) => {
+          Field(k, Some(Field.ValueType.DOUBLE), valueDouble=Seq(v))
+        }
+        case (k: String, v: Long) => {
+          Field(k, Some(Field.ValueType.INTEGER), valueInteger=Seq(v))
+        }
+      }.toSeq
+      Message(ByteString.copyFromUtf8(uuid), 0, payload=payload, fields=fields)
+    }
+  }
 }
