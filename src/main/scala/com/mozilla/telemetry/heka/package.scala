@@ -39,7 +39,7 @@ package object heka {
   implicit def messageToRichMessage(m: Message): RichMessage = new RichMessage(m)
 
   object RichMessage {
-    def apply (uuid: String, fieldsMap: Map[String, Any], payload: Option[String]): Message = {
+    def apply (uuid: String, fieldsMap: Map[String, Any], payload: Option[String], timestamp: Long=0): Message = {
       val fields = fieldsMap.toList.map{
         case (k: String, v: ByteString) => {
           Field(k, Some(Field.ValueType.BYTES), valueBytes=Seq(v))
@@ -57,7 +57,7 @@ package object heka {
           Field(k, Some(Field.ValueType.INTEGER), valueInteger=Seq(v))
         }
       }.toSeq
-      Message(ByteString.copyFromUtf8(uuid), 0, payload=payload, fields=fields)
+      Message(ByteString.copyFromUtf8(uuid), timestamp, payload=payload, fields=fields)
     }
   }
 }
