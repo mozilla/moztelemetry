@@ -67,9 +67,15 @@ class Dataset private (bucket: String, schema: Schema, prefix: String,
     }
   }
 
-  def records(fileLimit: Option[Int] = None)(implicit sc: SparkContext): RDD[Message] = {
-    // Partition the files into groups of approximately-equal size
-    val groups = ObjectSummary.groupBySize(summaries(fileLimit).toIterator)
+  def records(fileLimit: Option[Int] = None, minPartitions: Option[Int] = None)(implicit sc: SparkContext): RDD[Message] = {
+    val summarized = summaries(fileLimit).toIterator
+    val groups = minPartitions match {
+      case Some(x) =>
+        ObjectSummary.equallySizedGroups(summarized, x)
+      case None =>
+        // Partition the files into groups of approximately-equal size
+        ObjectSummary.groupBySize(summarized)
+    }
     sc.parallelize(groups, groups.size).flatMap(x => x).flatMap(o => {
       File.parse(S3Store.getKey(bucket, o.key), ex => Logger.log.warn(s"Failure to read file ${o.key}: ${ex.getMessage}"))
     })
