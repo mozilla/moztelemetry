@@ -6,8 +6,12 @@
 
 package com.mozilla.telemetry.utils
 
+import scala.collection.mutable
+
 // S3ObjectSummary can't be serialized
 case class ObjectSummary(key: String, size: Long)
+
+private case class SummaryGroup(totalSize: Long, summaries: List[ObjectSummary])
 
 object ObjectSummary {
   def groupBySize(keys: Iterator[ObjectSummary], threshold: Long = 1L << 31): List[List[ObjectSummary]] = {
@@ -22,5 +26,24 @@ object ObjectSummary {
             (x.size, List(x) :: res)
         }
       })._2
+  }
+  def equallySizedGroups(keys: Iterator[ObjectSummary], minGroups: Int, threshold: Long = 1L << 31): List[List[ObjectSummary]] = {
+    if (minGroups <= 1) {
+      groupBySize(keys, threshold)
+    } else {
+      // We order by -group.totalSize so that dequeue returns the minimum element.
+      val pq = mutable.PriorityQueue(List.fill(minGroups)(SummaryGroup(0, List.empty)) : _*)(Ordering.by(-_.totalSize))
+      // Sort the objects first so that they pack more optimally.
+      for (v <- keys.toList.sortBy(_.size).reverseIterator) {
+        val best = pq.dequeue()
+        if (best.totalSize + v.size > threshold) {
+          pq.enqueue(best, SummaryGroup(v.size, List(v)))
+        } else {
+          pq.enqueue(SummaryGroup(best.totalSize + v.size, v :: best.summaries))
+        }
+      }
+      // If we had fewer items in `keys` than minGroups, then we could have empty lists in the result
+      pq.iterator.map(x => x.summaries).filter(_.nonEmpty).toList
+    }
   }
 }

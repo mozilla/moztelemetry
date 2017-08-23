@@ -17,4 +17,28 @@ class ObjectSummaryTest extends FlatSpec with Matchers {
     groups.size should be (Math.ceil(totalBytes.toFloat/(threshold - 1)).toInt)
     groups.flatMap(x => x).map(_.size).sum should be (totalBytes)
   }
+
+  "ObjectSummarys" can "be grouped into a specific number of groups" in {
+    val testSummaries = List(5, 1, 2, 3, 9, 8, 7, 1, 12, 8).map(x => ObjectSummary(x.toString, x))
+    val groups = ObjectSummary.equallySizedGroups(testSummaries.toIterator, 5)
+    val expectedGroups = List(
+      List(1, 9),
+      List(3, 8),
+      List(5, 7),
+      List(12),
+      List(1, 2, 8)
+    ).map(g => g.map(x => ObjectSummary(x.toString, x)))
+    // This is overly strict, but it's unclear to me the best way to guarantee "as close to equal as possible"
+    // short of hardcoding an example check.
+    groups should be(expectedGroups)
+  }
+
+  "ObjectSummarys" should "respect the threshold parameter over group count when a number of groups is requested" in {
+    val testSummaries = List(5, 5, 5, 5, 5).map(x => ObjectSummary(x.toString, x))
+    val groups = ObjectSummary.equallySizedGroups(testSummaries.toIterator, 2, 11)
+    groups.size should be(3)
+    groups.flatten.map(_.size).sum should be(25)
+    groups.map(l => l.map(_.size).sum).max should be(10)
+  }
+
 }
