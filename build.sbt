@@ -26,6 +26,12 @@ libraryDependencies ++= Seq(
 */
 dependencyOverrides += "com.google.protobuf" % "protobuf-java" % "2.5.0"
 
+// Shade PB files
+assemblyShadeRules in assembly := Seq(
+  ShadeRule.rename("com.google.protobuf.**" -> "shadeproto.@1").inAll,
+  ShadeRule.rename("com.trueaccord.scalapb.**" -> "shadescalapb.@1").inAll
+) 
+
 // Compile proto files
 PB.targets in Compile := Seq(
   scalapb.gen() -> (sourceManaged in Compile).value
