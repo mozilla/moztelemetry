@@ -8,4 +8,6 @@ addSbtPlugin("org.scalastyle" %% "scalastyle-sbt-plugin" % "0.8.0")
 
 addSbtPlugin("com.thesamet" % "sbt-protoc" % "0.99.3")
 
+addSbtPlugin("com.frugalmechanic" % "fm-sbt-s3-resolver" % "0.12.0")
+
 libraryDependencies += "com.trueaccord.scalapb" %% "compilerplugin" % "0.5.47"
