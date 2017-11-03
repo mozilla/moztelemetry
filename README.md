@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/mozilla/moztelemetry.svg?branch=master)](https://travis-ci.org/mozilla/moztelemetry)
 [![codecov.io](https://codecov.io/github/mozilla/moztelemetry/coverage.svg?branch=master)](https://codecov.io/github/mozilla/moztelemetry?branch=master)
-[![CircleCi](https://circleci.com/gh/mozilla/moztelemetry.png?circle-token=3fff2168f7d8da61b47bd1481c4fcb984ec88ef5)](https://circleci.com/gh/mozilla/moztelemetry.svg?style=shield&circle-token=3fff2168f7d8da61b47bd1481c4fcb984ec88ef5)
+[![CircleCi](https://circleci.com/gh/mozilla/moztelemetry.svg?style=shield&circle-token=3fff2168f7d8da61b47bd1481c4fcb984ec88ef5)](https://circleci.com/gh/mozilla/moztelemetry)
 
 # moztelemetry
 Mozilla's Telemetry API for Scala
