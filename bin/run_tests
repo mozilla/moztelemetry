@@ -1,0 +1,10 @@
+#!/bin/bash -x
+
+# abort immediately on any failure
+set -e
+
+export AWS_ACCESS_KEY_ID=foo
+export AWS_SECRET_ACCESS_KEY=foo
+
+moto_server s3 -p 8001 &
+sbt test
