@@ -19,7 +19,7 @@ package object heka {
   private def field(f: Field): Any = {
     // I am assuming there is only one value
     f.getValueType match {
-      case Field.ValueType.BYTES => {
+      case Field.ValueTypeEnum.BYTES => {
         val bytes = f.valueBytes(0)
         // Our JSON bytes fields sometimes contain non-UTF8 strings that can
         // still be parsed as JSON. For now, we attempt to coerce all bytes
@@ -28,10 +28,10 @@ package object heka {
         // for details.
         bytes.toStringUtf8
       }
-      case Field.ValueType.STRING => f.valueString(0)
-      case Field.ValueType.BOOL => f.valueBool(0)
-      case Field.ValueType.DOUBLE => f.valueDouble(0)
-      case Field.ValueType.INTEGER => f.valueInteger(0)
+      case Field.ValueTypeEnum.STRING => f.valueString(0)
+      case Field.ValueTypeEnum.BOOL => f.valueBool(0)
+      case Field.ValueTypeEnum.DOUBLE => f.valueDouble(0)
+      case Field.ValueTypeEnum.INTEGER => f.valueInteger(0)
       case _ => assert(false)
     }
   }
@@ -42,19 +42,19 @@ package object heka {
     def apply (uuid: String, fieldsMap: Map[String, Any], payload: Option[String], timestamp: Long=0): Message = {
       val fields = fieldsMap.toList.map{
         case (k: String, v: ByteString) => {
-          Field(k, Some(Field.ValueType.BYTES), valueBytes=Seq(v))
+          Field(k, Some(Field.ValueTypeEnum.BYTES), valueBytes=Seq(v))
         }
         case (k: String, v: String) => {
-          Field(k, Some(Field.ValueType.STRING), valueString=Seq(v))
+          Field(k, Some(Field.ValueTypeEnum.STRING), valueString=Seq(v))
         }
         case (k: String, v: Boolean) => {
-          Field(k, Some(Field.ValueType.BOOL), valueBool=Seq(v))
+          Field(k, Some(Field.ValueTypeEnum.BOOL), valueBool=Seq(v))
         }
         case (k: String, v: Double) => {
-          Field(k, Some(Field.ValueType.DOUBLE), valueDouble=Seq(v))
+          Field(k, Some(Field.ValueTypeEnum.DOUBLE), valueDouble=Seq(v))
         }
         case (k: String, v: Long) => {
-          Field(k, Some(Field.ValueType.INTEGER), valueInteger=Seq(v))
+          Field(k, Some(Field.ValueTypeEnum.INTEGER), valueInteger=Seq(v))
         }
       }.toSeq
       Message(ByteString.copyFromUtf8(uuid), timestamp, payload=payload, fields=fields)
