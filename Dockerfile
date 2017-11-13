@@ -26,4 +26,7 @@ RUN apt-get update --fix-missing && \
 # The Python lib moto is for a mock S3 service.
 RUN pip install flask moto
 
+# Copy the project files into the container.
+COPY . /root
+
 WORKDIR /root
