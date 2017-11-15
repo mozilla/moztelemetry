@@ -39,3 +39,28 @@ Other test tasks can by run by passing the task through the test script, e.g.:
 ## Publishing snapshots
 
 Snapshots will now be published to our local maven repo in s3 on every commit merged into master via a circleci build
+
+## Inspecting the Generated Protoc Case Classes
+
+We use protoc to generate case classes which decode (and encode) the protobuf byte arrays.
+
+You can inspect the functions in the generated Field class:
+```
+sbt compile
+cd target/scala-2.11/classes/com/mozilla/telemetry/heka/
+javap -c Field\$.class
+```
+
+There are more components of the field class, which can be seen by simply running `ls`. For example:
+```
+Field$ValueTypeEnum$.class
+Field$ValueTypeEnum$BOOL$.class
+Field$ValueTypeEnum$BYTES$.class
+Field$ValueTypeEnum$DOUBLE$.class
+Field$ValueTypeEnum$INTEGER$.class
+Field$ValueTypeEnum$STRING$.class
+Field$ValueTypeEnum$Unrecognized$.class
+Field$ValueTypeEnum$Unrecognized.class
+Field$ValueTypeEnum$class.class
+Field$ValueTypeEnum.class
+```
