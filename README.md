@@ -26,6 +26,10 @@ Run the tests in the docker container:
 
 	./bin/test
 
+Other test tasks can by run by passing the task through the test script, e.g.:
+
+	./bin/test "testOnly com.mozilla.telemetry.stats.StatsTest"
+
 ## Publishing snapshots
 
 Snapshots will now be published to our local maven repo in s3 on every commit merged into master via a circleci build
