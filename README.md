@@ -20,15 +20,21 @@ To run the tests, build the docker container and run the tests.
 
 Build the container. You only have to do this once or when you update the Dockerfile:
 
-	docker build -t moztelemetry .
+```
+docker build -t moztelemetry .
+```
 
 Run the tests in the docker container:
 
-	./bin/test
+```
+./bin/test
+```
 
 Other test tasks can by run by passing the task through the test script, e.g.:
 
-	./bin/test "testOnly com.mozilla.telemetry.stats.StatsTest"
+```
+./bin/test "testOnly com.mozilla.telemetry.stats.StatsTest"
+```
 
 ## Publishing snapshots
 
