@@ -1,4 +1,12 @@
 machine:
+  pre:
+    # Install sbt 1.0.3
+    - sudo apt-get install openjdk-8-jdk
+    - wget -q https://dl.bintray.com/sbt/debian/sbt-1.0.3.deb
+    - sudo dpkg -i sbt-1.0.3.deb
+  cache_directories:
+    - "~/.ivy2"
+    - "~/.sbt"
   services:
     - docker
 
