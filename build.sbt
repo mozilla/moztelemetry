@@ -6,25 +6,31 @@ organization := "com.mozilla.telemetry"
 
 scalaVersion := "2.11.8"
 
-val sparkVersion = "2.2.0"
+sparkVersion := "2.1.0"
+
+sparkComponents ++= Seq("core")
 
 resolvers += Resolver.bintrayRepo("findify", "maven")
 
 libraryDependencies ++= Seq(
-  "org.apache.spark" %% "spark-core" % sparkVersion % "provided",
   "org.scalatest" %% "scalatest" % "2.2.6" % "test",
-  "commons-io" % "commons-io" % "1.3.2" % "test",
+  "org.apache.commons" % "commons-io" % "1.3.2" % "test",
   "com.github.seratch" %% "awscala" % "0.5.+",
   "com.amazonaws" % "aws-java-sdk" % "1.11.83",
   "com.google.protobuf" % "protobuf-java" % "2.5.0"
 )
-
 /*
  The HBase client requires protobuf-java 2.5.0 but scalapb uses protobuf-java 3.x
  so we have to force the dependency here. This should be fine as we are using only
  version 2 of the protobuf spec.
 */
 dependencyOverrides += "com.google.protobuf" % "protobuf-java" % "2.5.0"
+
+// Shade PB files
+assemblyShadeRules in assembly := Seq(
+  ShadeRule.rename("com.google.protobuf.**" -> "shadeproto.@1").inAll,
+  ShadeRule.rename("com.trueaccord.scalapb.**" -> "shadescalapb.@1").inAll
+) 
 
 // Compile proto files
 PB.targets in Compile := Seq(
@@ -33,6 +39,8 @@ PB.targets in Compile := Seq(
 
 // Exclude generated classes from the coverage
 coverageExcludedPackages := "com\\.mozilla\\.telemetry\\.heka\\.(Field|Message|Header)"
+
+credentials += Credentials(Path.userHome / ".ivy2" / ".sbtcredentials")
 
 publishMavenStyle := true
 
