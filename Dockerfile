@@ -1,7 +1,7 @@
 FROM openjdk:8
 
 ENV SCALA_VERSION=2.12.4 \
-    SBT_VERSION=1.0.3
+    SBT_VERSION=1.0.4
 
 # Install Scala.
 RUN \
