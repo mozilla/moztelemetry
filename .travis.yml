@@ -3,10 +3,9 @@ sudo: false
 cache:
   directories:
     - $HOME/.ivy2
-    - $HOME/.sbt
 matrix:
   include:
-    - jdk: openjdk8
+    - jdk: openjdk7
       scala: 2.11.8
       python: 3.5
       env: TEST_SPARK_VERSION="2.1.0" AWS_ACCESS_KEY_ID=foo AWS_SECRET_ACCESS_KEY=foo

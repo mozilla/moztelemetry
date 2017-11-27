@@ -1,23 +1,31 @@
 machine:
   pre:
-    # Install sbt 1.0.3
+    # Install sbt 0.13.16
     - sudo apt-get install openjdk-8-jdk
-    - wget -q https://dl.bintray.com/sbt/debian/sbt-1.0.3.deb
-    - sudo dpkg -i sbt-1.0.3.deb
+    - wget -q https://dl.bintray.com/sbt/debian/sbt-0.13.16.deb
+    - sudo dpkg -i sbt-0.13.16.deb
   cache_directories:
     - "~/.ivy2"
     - "~/.sbt"
-  services:
-    - docker
 
 dependencies:
-  override:
-    - docker info
-    - docker build --rm=false -t circleci/moztelemetry:$CIRCLE_SHA1 .
+  pre:
+    - sudo apt-get update
+    - sudo apt-get install libffi-dev libssl-dev python-dev
+    - sudo apt-get install python
+    - python --version
+    - curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+    - sudo python get-pip.py
+    - sudo pip install --upgrade pip
+    - sudo pip install --upgrade setuptools
+    - sudo pip install pyopenssl ndg-httpsclient pyasn1
+    - sudo pip install moto --ignore-installed six
+    - sudo pip install flask
+    - moto_server s3 -p 8001 &
 
 test:
   override:
-    - docker run -t -i -p 8001:8001 circleci/moztelemetry:$CIRCLE_SHA1 ./bin/run_tests
+    - 'true'
 
 deployment:
   latest:
