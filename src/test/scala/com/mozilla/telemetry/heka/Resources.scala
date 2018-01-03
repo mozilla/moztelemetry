@@ -18,8 +18,21 @@ object Resources {
       "string" -> "foo",
       "bool" -> true,
       "double" -> 4.2,
-      "integer" -> 42L
-    ),
+      "integer" -> 42L,
+      "submission" ->
+        """
+          | {
+          |   "partiallyExtracted" : {
+          |     "alpha" : "1",
+          |     "beta" : "2"
+          |   },
+          |   "gamma": "3"
+          | }
+        """.stripMargin,
+      "extracted.subfield" -> """{"delta": "4"}""",
+      "extracted.nested.subfield"-> """{"epsilon": "5"}""",
+      "partiallyExtracted.nested" -> """{"zeta": "6"}"""
+  ),
     Some("payload")
   )
 

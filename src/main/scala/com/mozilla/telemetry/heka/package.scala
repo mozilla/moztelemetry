@@ -7,12 +7,51 @@
 package com.mozilla.telemetry
 
 import com.google.protobuf.ByteString
+import org.json4s._
+import org.json4s.jackson.JsonMethods._
+import org.json4s.JsonDSL._
+import scala.util.Try
 
 package object heka {
   class RichMessage(m: Message) {
+
+    /** Deserialize the Heka message as a native Scala Map. */
     def fieldsAsMap: Map[String, Any] = {
       val fields = m.fields
       Map(fields.map(_.name).zip(fields.map(field)): _*)
+    }
+
+    /** Reconstructs a Heka message as a JSON String.
+      *
+      * The message is parsed and serialized into JSON. Keys that have been extracted
+      * into the toplevel document are inserted into to the proper place in the document.
+      *
+      * @return valid JSON String
+      */
+    def asJson: String = {
+      val fields = Map(m.fields.map(_.name).zip(m.fields.map(fieldAsJValue)): _*)
+      val payload = fields.getOrElse("submission", parse("{}"))
+
+      val (extractedKeys, metaKeys) =
+        fields
+          .keys
+          .filter(k => k != "submission")
+          .partition(k => k.contains("."))
+
+      val initialMetaFields = render(
+        Map(
+          "Timestamp" -> m.timestamp
+        )
+      )
+      val metaFields = initialMetaFields merge render(fields.filterKeys(metaKeys.toSet))
+
+      val payloadFields =
+        fields
+          .filterKeys(extractedKeys.toSet)
+          .map { case (k, v) => applyNestedField(k.split("\\."), v) }
+          .foldLeft(JNothing.asInstanceOf[JValue]) ((acc, field) =>  acc merge field)
+
+      compact(payload merge payloadFields merge render(("meta" -> metaFields)))
     }
   }
 
@@ -33,6 +72,29 @@ package object heka {
       case Field.ValueTypeEnum.DOUBLE => f.valueDouble(0)
       case Field.ValueTypeEnum.INTEGER => f.valueInteger(0)
       case _ => assert(false)
+    }
+  }
+
+  private def applyNestedField(keys: Seq[String], value: JValue): JValue = {
+    def helper(keys: Seq[String], value: JValue): JValue = {
+      if(keys.isEmpty) { value }
+      else { helper(keys.tail, render(Map(keys.head -> value))) }
+    }
+    // this should be applied from right to left e.g foo.bar.baz -> {key: value}
+    helper(keys.reverse, value)
+  }
+
+  private def fieldAsJValue(f: Field): JValue = {
+    f.getValueType match {
+      case Field.ValueTypeEnum.BYTES => {
+        val bytes = f.valueBytes(0).toStringUtf8
+        Try(parse(bytes)).getOrElse(bytes)
+      }
+      case Field.ValueTypeEnum.STRING => Try(parse(f.valueString(0))).getOrElse(f.valueString(0))
+      case Field.ValueTypeEnum.BOOL => JBool(f.valueBool(0))
+      case Field.ValueTypeEnum.DOUBLE => JDouble(f.valueDouble(0))
+      case Field.ValueTypeEnum.INTEGER => JInt(f.valueInteger(0))
+      case _ => JNull
     }
   }
 
