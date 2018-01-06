@@ -9,11 +9,15 @@ scalaVersion := "2.11.8"
 val sparkVersion = "2.2.0"
 
 resolvers += Resolver.bintrayRepo("findify", "maven")
+resolvers += "Sonatype OSS Snapshots" at
+  "https://oss.sonatype.org/content/repositories/snapshots"
 
 libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-core" % sparkVersion % "provided",
-  "org.scalatest" %% "scalatest" % "3.0.4" % "test",
+  "org.scalatest" %% "scalatest" % "3.0.4" % "test, bench",
+  "org.json4s" %% "json4s-jackson" % "3.2.11",
   "commons-io" % "commons-io" % "1.3.2" % "test",
+  "com.storm-enroute" %% "scalameter" % "0.8.2" % "bench",
   "com.github.seratch" %% "awscala" % "0.5.+",
   "com.amazonaws" % "aws-java-sdk" % "1.11.83",
   "com.google.protobuf" % "protobuf-java" % "2.5.0"
@@ -33,6 +37,18 @@ PB.targets in Compile := Seq(
 
 // Exclude generated classes from the coverage
 coverageExcludedPackages := "com\\.mozilla\\.telemetry\\.heka\\.(Field|Message|Header)"
+
+// Include the benchmarking framework
+lazy val Benchmark = config("bench") extend Test
+lazy val root =
+  Project("root", file("."))
+  .configs(Benchmark)
+  .settings(inConfig(Benchmark)(Defaults.testSettings): _*)
+  .settings(
+    testFrameworks += new TestFramework("org.scalameter.ScalaMeterFramework"),
+    logBuffered := false,
+    parallelExecution in Benchmark := false
+)
 
 publishMavenStyle := true
 
