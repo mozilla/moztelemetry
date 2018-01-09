@@ -55,7 +55,7 @@ object MessageBenchmark extends Bench.LocalTime {
     measure method "asJson" in {
       using(input) in {
         m => m.foreach(m => {
-          val submission = parse(m.asJson)
+          val submission = m.asJson
           (
             submission \\ "gamma",
             submission \\ "partiallyExtracted" \\ "alpha",
@@ -107,7 +107,7 @@ object MessageBenchmark extends Bench.LocalTime {
       using(input) in {
         m =>
           m.foreach(m => {
-            val submission = parse(m.asJson)
+            val submission = m.asJson
             (
               submission \\ "environment" \\ "addons" \\ "activeExperiment" \\ "id",
               submission \\ "application" \\ "buildId",

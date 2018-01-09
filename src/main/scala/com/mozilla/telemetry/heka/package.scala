@@ -21,14 +21,14 @@ package object heka {
       Map(fields.map(_.name).zip(fields.map(field)): _*)
     }
 
-    /** Reconstructs a Heka message as a JSON String.
+    /** Reconstructs a Heka message as a json4s JValue.
       *
       * The message is parsed and serialized into JSON. Keys that have been extracted
       * into the toplevel document are inserted into to the proper place in the document.
       *
-      * @return valid JSON String
+      * @return reconstructed JValue
       */
-    def asJson: String = {
+    def asJson: JValue = {
       val fields = Map(m.fields.map(_.name).zip(m.fields.map(fieldAsJValue)): _*)
       val payload = fields.getOrElse("submission", parse("{}"))
 
@@ -51,7 +51,7 @@ package object heka {
           .map { case (k, v) => applyNestedField(k.split("\\."), v) }
           .foldLeft(JNothing.asInstanceOf[JValue]) ((acc, field) =>  acc merge field)
 
-      compact(payload merge payloadFields merge render(("meta" -> metaFields)))
+      payload merge payloadFields merge render(("meta" -> metaFields))
     }
   }
 
