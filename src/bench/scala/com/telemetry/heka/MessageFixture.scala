@@ -139,8 +139,8 @@ class MessageFixtureTest extends FlatSpec with Matchers {
       }
     }
 
-    val original = removeMeta(parse(MessageFixture.message.asJson))
-    val extracted = removeMeta(parse(MessageFixture.extractedMessage.asJson))
+    val original = removeMeta(MessageFixture.message.asJson)
+    val extracted = removeMeta(MessageFixture.extractedMessage.asJson)
 
     val Diff(changed, _, _) = original diff extracted
     changed should be (JNothing)

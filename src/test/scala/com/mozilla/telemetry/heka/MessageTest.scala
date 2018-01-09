@@ -21,8 +21,7 @@ class MessageTest extends FlatSpec with Matchers {
   }
 
   "Message" can "be represented as valid JSON" in {
-    val json = Resources.message.asJson
-    val doc = parse(json)
+    val doc = Resources.message.asJson
 
     // check that the field has been casted correctly
     doc \\ "meta" \\ "integer" should be (JInt(42))
@@ -44,6 +43,6 @@ class MessageTest extends FlatSpec with Matchers {
 
   it can "handle documents without extracted fields" in {
     val message = RichMessage("uuid", Resources.message.fieldsAsMap.filterKeys(k => !k.contains(".")), None)
-    parse(message.asJson)
+    message.asJson
   }
 }
