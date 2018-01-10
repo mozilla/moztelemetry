@@ -30,7 +30,18 @@ package object heka {
       */
     def asJson: JValue = {
       val fields = Map(m.fields.map(_.name).zip(m.fields.map(fieldAsJValue)): _*)
-      val payload = fields.getOrElse("submission", parse("{}"))
+
+      lazy val submission = fields.getOrElse("submission", JNothing)
+      val payload = m.payload match {
+        case Some(payload: String) => {
+          val json = Try(parse(payload)).getOrElse(JNothing)
+          json match {
+            case JObject(x) => json
+            case _ => submission
+          }
+        }
+        case _ => submission
+      }
 
       val (extractedKeys, metaKeys) =
         fields
@@ -90,7 +101,13 @@ package object heka {
         val bytes = f.valueBytes(0).toStringUtf8
         Try(parse(bytes)).getOrElse(bytes)
       }
-      case Field.ValueTypeEnum.STRING => Try(parse(f.valueString(0))).getOrElse(f.valueString(0))
+      case Field.ValueTypeEnum.STRING => {
+        val json = Try(parse(f.valueString(0))).getOrElse(JNothing)
+        json match {
+          case JObject(x) => json
+          case _ => JString(f.valueString(0))
+        }
+      }
       case Field.ValueTypeEnum.BOOL => JBool(f.valueBool(0))
       case Field.ValueTypeEnum.DOUBLE => JDouble(f.valueDouble(0))
       case Field.ValueTypeEnum.INTEGER => JInt(f.valueInteger(0))

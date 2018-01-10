@@ -19,6 +19,7 @@ object Resources {
       "bool" -> true,
       "double" -> 4.2,
       "integer" -> 42L,
+      "string-with-int-value" -> "42",
       "submission" ->
         """
           | {
@@ -34,6 +35,17 @@ object Resources {
       "partiallyExtracted.nested" -> """{"zeta": "6"}"""
   ),
     Some("payload")
+  )
+
+  val payloadMessage = RichMessage(
+    "1234",
+    Map(
+      "silver" -> "coin",
+      // `submission` is ignored because of the payload. In a real message, it's
+      // only one or the other.
+      "submission" -> """{"gold": "bar"}"""
+    ),
+    Some("""{"bronze": "plate"}""")
   )
 
   val header = Header(message.toByteArray.length)
