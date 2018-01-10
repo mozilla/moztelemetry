@@ -41,8 +41,20 @@ class MessageTest extends FlatSpec with Matchers {
     doc \\ "partiallyExtracted" \\ "nested" \\ "zeta" should be (JString("6"))
   }
 
-  it can "handle documents without extracted fields" in {
+  it should "handle documents without extracted fields" in {
     val message = RichMessage("uuid", Resources.message.fieldsAsMap.filterKeys(k => !k.contains(".")), None)
     message.asJson
+  }
+
+  it should "handle ambiguous top level types conservatively" in {
+    val message = Resources.message.asJson
+    message \\ "meta" \\ "string-with-int-value" should be (JString("42"))
+  }
+
+  it should "default to payload" in {
+    val message = Resources.payloadMessage.asJson
+    message \ "bronze" should be (JString("plate"))
+    message \ "meta" \ "silver" should be (JString("coin"))
+    message \ "gold" should be (JNothing)
   }
 }
