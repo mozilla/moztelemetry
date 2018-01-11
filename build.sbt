@@ -12,7 +12,7 @@ resolvers += Resolver.bintrayRepo("findify", "maven")
 
 libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-core" % sparkVersion % "provided",
-  "org.scalatest" %% "scalatest" % "2.2.6" % "test",
+  "org.scalatest" %% "scalatest" % "3.0.4" % "test",
   "commons-io" % "commons-io" % "1.3.2" % "test",
   "com.github.seratch" %% "awscala" % "0.5.+",
   "com.amazonaws" % "aws-java-sdk" % "1.11.83",
