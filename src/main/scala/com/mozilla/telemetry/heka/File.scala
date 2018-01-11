@@ -31,43 +31,44 @@ object File {
 
       val cursor = is.read()
 
-      if (cursor == -1) {
-        return None
+      cursor match {
+        case -1 => None;
+        case _ => {
+          // Parse record separator
+          if (cursor != 0x1E) {
+            throw new Exception("Invalid Heka Frame: missing record separator")
+          }
+
+          // Parse header
+          val headerLength = is.read()
+          val headerBuffer = new Array[Byte](headerLength)
+          is.readFully(headerBuffer, 0, headerLength)
+          val header = Header.parseFrom(headerBuffer)
+
+          // Parse unit separator
+          if (is.read() != 0x1F) {
+            throw new Exception("Invalid Heka Frame: missing unit separator")
+          }
+
+          // Parse message which should be compressed with Snappy
+          val messageBuffer = new Array[Byte](header.messageLength)
+          is.readFully(messageBuffer, 0, header.messageLength)
+
+          val message = try {
+            val uncompressedLength = Snappy.uncompressedLength(messageBuffer)
+            val uncompressedMessage = new Array[Byte](uncompressedLength)
+            Snappy.uncompress(messageBuffer, 0, header.messageLength, uncompressedMessage, 0)
+            Message.parseFrom(uncompressedMessage)
+          } catch {
+            case ex: Throwable =>
+              Message.parseFrom(messageBuffer)
+          }
+
+          // 3 -> one byte for the record separator, one for the header length and one for the unit separator
+          offset += 3 + headerLength + header.messageLength
+          Some(message)
+        }
       }
-
-      // Parse record separator
-      if (cursor != 0x1E) {
-        throw new Exception("Invalid Heka Frame: missing record separator")
-      }
-
-      // Parse header
-      val headerLength = is.read()
-      val headerBuffer = new Array[Byte](headerLength)
-      is.readFully(headerBuffer, 0, headerLength)
-      val header = Header.parseFrom(headerBuffer)
-
-      // Parse unit separator
-      if (is.read() != 0x1F) {
-        throw new Exception("Invalid Heka Frame: missing unit separator")
-      }
-
-      // Parse message which should be compressed with Snappy
-      val messageBuffer = new Array[Byte](header.messageLength)
-      is.readFully(messageBuffer, 0, header.messageLength)
-
-      val message = try {
-        val uncompressedLength = Snappy.uncompressedLength(messageBuffer)
-        val uncompressedMessage = new Array[Byte](uncompressedLength)
-        Snappy.uncompress(messageBuffer, 0, header.messageLength, uncompressedMessage, 0)
-        Message.parseFrom(uncompressedMessage)
-      } catch {
-        case ex: Throwable =>
-          Message.parseFrom(messageBuffer)
-      }
-
-      // 3 -> one byte for the record separator, one for the header length and one for the unit separator
-      offset += 3 + headerLength + header.messageLength
-      Some(message)
     }
 
     @annotation.tailrec

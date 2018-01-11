@@ -8,6 +8,7 @@ package com.mozilla.telemetry.heka
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream}
 
+import org.scalatest.Assertions.{assertThrows}
 import org.scalatest.{FlatSpec, Matchers}
 import org.xerial.snappy.Snappy
 
@@ -29,7 +30,7 @@ class FileTest extends FlatSpec with Matchers {
 
   it should "contain properly framed messages" in {
     val emptyFile = new ByteArrayInputStream("foo".getBytes)
-    a [Exception] should be thrownBy {
+    assertThrows[Exception] {
       File.parse(emptyFile).toList
     }
 
@@ -43,7 +44,7 @@ class FileTest extends FlatSpec with Matchers {
       baos.write(header, 0, header.size)
       baos.toByteArray
     }
-    a [Exception] should be thrownBy {
+    assertThrows[Exception] {
       File.parse(new ByteArrayInputStream(fileWithMissingUnitSeparator)).toList
     }
   }
@@ -93,7 +94,7 @@ class FileTest extends FlatSpec with Matchers {
       }
     }
 
-    a [Exception] should be thrownBy {
+    assertThrows[Exception] {
       File.parse(wackyStream).size
     }
   }
