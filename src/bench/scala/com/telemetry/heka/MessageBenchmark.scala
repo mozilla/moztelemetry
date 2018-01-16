@@ -3,11 +3,12 @@ package com.mozilla.telemetry.heka
 import org.scalameter.api._
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
+import org.scalameter.Measurer
 import org.scalameter.picklers.noPickler._
 
-object MessageBenchmark extends Bench.LocalTime {
-  override def persistor = new SerializationPersistor
 
+object MessageBenchmarkFixture {
+  // separate generation of fixtures from access of fixtures via this fixture
   val messages = Map[String, RichMessage](
     "simple" -> MessageFixture.simpleMessage,
     "simple extracted" -> MessageFixture.extractedSimpleMessage,
@@ -15,12 +16,24 @@ object MessageBenchmark extends Bench.LocalTime {
     "telemetry extracted" -> MessageFixture.extractedMessage
   )
 
-  performance of "Message" in {
-    val input = for {
-      size <- Gen.exponential("size")(10, 1000, 10)
-      messageName <- Gen.enumeration[String]("message")(messages.keys.toList :_*)
-    } yield List.fill(size)(messages(messageName))
+  def generateMessages(messageName: String, sizes: Gen[Int]): Gen[List[RichMessage]] = {
+    for {size <- sizes} yield List.fill(size)(messages(messageName))
+  }
+}
 
+class MessageBenchmark extends Bench.ForkedTime {
+
+  import MessageBenchmarkFixture._
+
+  override def persistor = new SerializationPersistor
+
+  val sizes = Gen.exponential("size")(10, 1000, 10)
+
+  performance of "deserialization speed" in {
+    val input = for {
+      size <- sizes
+      messageName <- Gen.enumeration[String]("message")(messages.keys.toList: _*)
+    } yield List.fill(size)(messages(messageName))
 
     measure method "fieldsAsMap" in {
       using(input) in { m => m.foreach(_.fieldsAsMap) }
@@ -30,50 +43,45 @@ object MessageBenchmark extends Bench.LocalTime {
     }
   }
 
-  val sizes = Gen.exponential("size")(10, 1000, 10)
-  def generateMessages(messageName: String, sizes: Gen[Int]): Gen[List[RichMessage]] = {
-    for { size <- sizes } yield List.fill(size)(messages(messageName))
-  }
+  performance of "extraction speed" in {
+    performance of "simple extracted" in {
+      val input = generateMessages("simple extracted", sizes)
 
-  performance of "simple extracted" in {
-    val input = generateMessages("simple extracted", sizes)
-
-    measure method "fieldsAsMap" in {
-      using(input) in {
-        m => m.foreach(m => {
-          val payload = m.fieldsAsMap
-          val submission = parse(payload("submission").asInstanceOf[String])
-          (
-            submission \\ "gamma",
-            submission \\ "partiallyExtracted" \\ "alpha",
-            parse(payload("partiallyExtracted.nested").asInstanceOf[String]) \\ "zeta",
-            parse(payload("extracted.subfield").asInstanceOf[String]) \\ "delta"
-          )
-        })
+      measure method "fieldsAsMap" in {
+        using(input) in { m =>
+          m.map(m => {
+            val payload = m.fieldsAsMap
+            val submission = parse(payload("submission").asInstanceOf[String])
+            (
+              submission \\ "gamma",
+              submission \\ "partiallyExtracted" \\ "alpha",
+              parse(payload("partiallyExtracted.nested").asInstanceOf[String]) \\ "zeta",
+              parse(payload("extracted.subfield").asInstanceOf[String]) \\ "delta"
+            )
+          })
+        }
+      }
+      measure method "asJson" in {
+        using(input) in { m =>
+          m.map(m => {
+            val submission = m.asJson
+            (
+              submission \\ "gamma",
+              submission \\ "partiallyExtracted" \\ "alpha",
+              submission \\ "partiallyExtracted" \\ "nested" \\ "zeta",
+              submission \\ "extracted" \\ "subfield" \\ "delta"
+            )
+          })
+        }
       }
     }
-    measure method "asJson" in {
-      using(input) in {
-        m => m.foreach(m => {
-          val submission = m.asJson
-          (
-            submission \\ "gamma",
-            submission \\ "partiallyExtracted" \\ "alpha",
-            submission \\ "partiallyExtracted" \\ "nested" \\ "zeta",
-            submission \\ "extracted" \\ "subfield" \\ "delta"
-          )
-        })
-      }
-    }
-  }
 
-  performance of "telemetry extracted" in {
-    val input = generateMessages("telemetry extracted", sizes)
+    performance of "telemetry extracted" in {
+      val input = generateMessages("telemetry extracted", sizes)
 
-    measure method "fieldsAsMap" in {
-      using(input) in {
-        m =>
-          m.foreach(m => {
+      measure method "fieldsAsMap" in {
+        using(input) in { m =>
+          m.map(m => {
             val fields = m.fieldsAsMap
 
             lazy val addons = parse(fields.getOrElse("environment.addons", "{}").asInstanceOf[String])
@@ -98,15 +106,13 @@ object MessageBenchmark extends Bench.LocalTime {
               settings \\ "locale",
               system \\ "os" \\ "name"
             )
-
           })
+        }
       }
-    }
 
-    measure method "asJson" in {
-      using(input) in {
-        m =>
-          m.foreach(m => {
+      measure method "asJson" in {
+        using(input) in { m =>
+          m.map(m => {
             val submission = m.asJson
             (
               submission \\ "environment" \\ "addons" \\ "activeExperiment" \\ "id",
@@ -120,6 +126,71 @@ object MessageBenchmark extends Bench.LocalTime {
               submission \\ "environment" \\ "system" \\ "os" \\ "name"
             )
           })
+        }
+      }
+    }
+  }
+}
+
+class MessageMemoryBenchmark extends Bench.ForkedTime {
+
+  import MessageBenchmarkFixture._
+
+  override def persistor = new SerializationPersistor
+
+  override def measurer = new Executor.Measurer.MemoryFootprint
+
+  val sizes = Gen.exponential("size")(10, 1000, 10)
+
+  performance of "extraction memory footprint" in {
+    performance of "simple extracted" in {
+      val input = generateMessages("simple extracted", sizes)
+
+      measure method "fieldsAsMap" in {
+        using(input) in {
+          m =>
+            m.map(m => {
+              val payload = m.fieldsAsMap
+
+              Seq(
+                payload,
+                parse(payload("submission").asInstanceOf[String]),
+                parse(payload("partiallyExtracted.nested").asInstanceOf[String]),
+                parse(payload("extracted.subfield").asInstanceOf[String])
+              )
+            })
+        }
+        measure method "asJson" in {
+          using(input) in { m => m.map(_.asJson) }
+        }
+      }
+
+      performance of "telemetry extracted" in {
+        val input = generateMessages("telemetry extracted", sizes)
+
+        measure method "fieldsAsMap" in {
+          using(input) in { m =>
+            m.map(m => {
+              val fields = m.fieldsAsMap
+
+              Seq(
+                fields,
+                parse(fields.getOrElse("environment.addons", "{}").asInstanceOf[String]),
+                parse(fields.getOrElse("submission", "{}").asInstanceOf[String]),
+                parse(fields.getOrElse("environment.build", "{}").asInstanceOf[String]),
+                parse(fields.getOrElse("payload.info", "{}").asInstanceOf[String]),
+                parse(fields.getOrElse("environment.partner", "{}").asInstanceOf[String]),
+                parse(fields.getOrElse("environment.profile", "{}").asInstanceOf[String]),
+                parse(fields.getOrElse("environment.settings", "{}").asInstanceOf[String]),
+                parse(fields.getOrElse("environment.system", "{}").asInstanceOf[String])
+              )
+            })
+          }
+        }
+
+        measure method "asJson" in {
+          using(input) in { m => m.map(_.asJson) }
+        }
       }
     }
   }
