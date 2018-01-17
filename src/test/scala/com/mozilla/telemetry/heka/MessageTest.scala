@@ -8,7 +8,6 @@ package com.mozilla.telemetry.heka
 
 import org.scalatest.{FlatSpec, Matchers}
 import org.json4s._
-import org.json4s.jackson.JsonMethods.parse
 
 class MessageTest extends FlatSpec with Matchers {
   "Fields" can "be parsed" in {

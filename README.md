@@ -11,7 +11,7 @@ Mozilla's Telemetry API for Scala
 In SBT:
 ```
 resolvers += "S3 local maven snapshots" at "s3://net-mozaws-data-us-west-2-ops-mavenrepo/snapshots"
-libraryDependencies += "com.mozilla.telemetry" %% "moztelemetry" % "1.0-SNAPSHOT"
+libraryDependencies += "com.mozilla.telemetry" %% "moztelemetry" % "1.1-SNAPSHOT"
 ```
 
 ## Testing
@@ -34,6 +34,17 @@ Other test tasks can by run by passing the task through the test script, e.g.:
 
 ```
 ./bin/test "testOnly com.mozilla.telemetry.stats.StatsTest"
+```
+
+### Running benchmarks
+
+Benchmarks of the deserialization process can be run using the testing script:
+```
+# via docker
+./bin/test bench:test
+
+# directly
+sbt bench:test
 ```
 
 ## Publishing snapshots
