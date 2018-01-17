@@ -1,6 +1,5 @@
 package com.mozilla.telemetry.heka
 
-import com.google.protobuf.ByteString
 import org.json4s.JsonDSL._
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
@@ -70,10 +69,11 @@ object MessageFixture {
     RichMessage("uuid", formattedPayload, None)
   }
 
-  val message = generateMessage(extract = false)
-  val extractedMessage = generateMessage(extract = true)
+  def message = generateMessage(extract = false)
 
-  val extractedSimpleMessage = {
+  def extractedMessage = generateMessage(extract = true)
+
+  def extractedSimpleMessage = {
     RichMessage(
       "simpleMessage",
       Map(
@@ -88,13 +88,14 @@ object MessageFixture {
             | }
           """.stripMargin,
         "extracted.subfield" -> """{"delta": "4"}""",
-        "extracted.nested.subfield"-> """{"epsilon": "5"}""",
+        "extracted.nested.subfield" -> """{"epsilon": "5"}""",
         "partiallyExtracted.nested" -> """{"zeta": "6"}"""
       ),
       None
     )
   }
-  val simpleMessage = {
+
+  def simpleMessage = {
     RichMessage(
       "simpleMessage",
       Map(
@@ -128,7 +129,7 @@ object MessageFixture {
 
 class MessageFixtureTest extends FlatSpec with Matchers {
   "MessageFixture" should "contain a submission field" in {
-    MessageFixture.message.fieldsAsMap.keys should contain ("submission")
+    MessageFixture.message.fieldsAsMap.keys should contain("submission")
   }
 
   it should "contain the same values" in {
@@ -143,6 +144,20 @@ class MessageFixtureTest extends FlatSpec with Matchers {
     val extracted = removeMeta(MessageFixture.extractedMessage.asJson)
 
     val Diff(changed, _, _) = original diff extracted
-    changed should be (JNothing)
+    changed should be(JNothing)
+  }
+
+  it should "fill a list with separate instances of RichMessages" in {
+    val instantiatedMessage = MessageFixture.simpleMessage
+    val referencedMessages = List.fill(2)(instantiatedMessage)
+
+    // instantiated copies contain the same object, but fieldsAsMap are separate
+    assert(referencedMessages(0) eq referencedMessages(1))
+    assert(referencedMessages(0).fieldsAsMap ne referencedMessages(1).fieldsAsMap)
+
+    // check that each message is different too
+    val list = List.fill(2)(MessageFixture.simpleMessage)
+    assert(list(0) ne list(1))
+    assert(list(0).asJson ne list(1).asJson)
   }
 }
