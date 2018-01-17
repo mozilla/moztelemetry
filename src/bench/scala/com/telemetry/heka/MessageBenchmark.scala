@@ -37,8 +37,8 @@ class MessageBenchmark extends Bench.ForkedTime {
     measure method "fieldsAsMap" in {
       using(input) in { m => m.foreach(_.fieldsAsMap) }
     }
-    measure method "asJson" in {
-      using(input) in { m => m.foreach(_.asJson) }
+    measure method "toJValue" in {
+      using(input) in { m => m.foreach(_.toJValue) }
     }
   }
 
@@ -60,10 +60,10 @@ class MessageBenchmark extends Bench.ForkedTime {
           })
         }
       }
-      measure method "asJson" in {
+      measure method "toJValue" in {
         using(input) in { m =>
           m.map(m => {
-            val submission = m.asJson
+            val submission = m.toJValue
             (
               submission \\ "gamma",
               submission \\ "partiallyExtracted" \\ "alpha",
@@ -109,10 +109,10 @@ class MessageBenchmark extends Bench.ForkedTime {
         }
       }
 
-      measure method "asJson" in {
+      measure method "toJValue" in {
         using(input) in { m =>
           m.map(m => {
-            val submission = m.asJson
+            val submission = m.toJValue
             (
               submission \\ "environment" \\ "addons" \\ "activeExperiment" \\ "id",
               submission \\ "application" \\ "buildId",
@@ -159,8 +159,8 @@ class MessageMemoryBenchmark extends Bench.ForkedTime {
               )
             })
         }
-        measure method "asJson" in {
-          using(input) in { m => m.map(_.asJson) }
+        measure method "toJValue" in {
+          using(input) in { m => m.map(_.toJValue) }
         }
       }
 
@@ -187,8 +187,8 @@ class MessageMemoryBenchmark extends Bench.ForkedTime {
           }
         }
 
-        measure method "asJson" in {
-          using(input) in { m => m.map(_.asJson) }
+        measure method "toJValue" in {
+          using(input) in { m => m.map(_.toJValue) }
         }
       }
     }

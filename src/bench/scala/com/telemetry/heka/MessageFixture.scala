@@ -140,8 +140,8 @@ class MessageFixtureTest extends FlatSpec with Matchers {
       }
     }
 
-    val original = removeMeta(MessageFixture.message.asJson)
-    val extracted = removeMeta(MessageFixture.extractedMessage.asJson)
+    val original = removeMeta(MessageFixture.message.toJValue)
+    val extracted = removeMeta(MessageFixture.extractedMessage.toJValue)
 
     val Diff(changed, _, _) = original diff extracted
     changed should be(JNothing)
@@ -158,6 +158,6 @@ class MessageFixtureTest extends FlatSpec with Matchers {
     // check that each message is different too
     val list = List.fill(2)(MessageFixture.simpleMessage)
     assert(list(0) ne list(1))
-    assert(list(0).asJson ne list(1).asJson)
+    assert(list(0).toJValue ne list(1).toJValue)
   }
 }

@@ -28,7 +28,7 @@ package object heka {
       *
       * @return reconstructed JValue
       */
-    def asJson: JValue = {
+    def toJValue: JValue = {
       val fields = Map(m.fields.map(_.name).zip(m.fields.map(fieldAsJValue)): _*)
 
       lazy val submission = fields.getOrElse("submission", JNothing)
