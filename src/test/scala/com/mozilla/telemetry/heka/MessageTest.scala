@@ -20,7 +20,7 @@ class MessageTest extends FlatSpec with Matchers {
   }
 
   "Message" can "be represented as valid JSON" in {
-    val doc = Resources.message.asJson
+    val doc = Resources.message.toJValue
 
     // check that the field has been casted correctly
     doc \\ "meta" \\ "integer" should be (JInt(42))
@@ -42,16 +42,16 @@ class MessageTest extends FlatSpec with Matchers {
 
   it should "handle documents without extracted fields" in {
     val message = RichMessage("uuid", Resources.message.fieldsAsMap.filterKeys(k => !k.contains(".")), None)
-    message.asJson
+    message.toJValue
   }
 
   it should "handle ambiguous top level types conservatively" in {
-    val message = Resources.message.asJson
+    val message = Resources.message.toJValue
     message \\ "meta" \\ "string-with-int-value" should be (JString("42"))
   }
 
   it should "default to payload" in {
-    val message = Resources.payloadMessage.asJson
+    val message = Resources.payloadMessage.toJValue
     message \ "bronze" should be (JString("plate"))
     message \ "meta" \ "silver" should be (JString("coin"))
     message \ "gold" should be (JNothing)
