@@ -9,8 +9,6 @@ scalaVersion := "2.11.8"
 val sparkVersion = "2.2.0"
 
 resolvers += Resolver.bintrayRepo("findify", "maven")
-resolvers += "Sonatype OSS Snapshots" at
-  "https://oss.sonatype.org/content/repositories/snapshots"
 
 libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-core" % sparkVersion % "provided",
@@ -45,6 +43,8 @@ lazy val root =
   .configs(Benchmark)
   .settings(inConfig(Benchmark)(Defaults.testSettings): _*)
   .settings(
+    resolvers += "Sonatype OSS Snapshots" at
+      "https://oss.sonatype.org/content/repositories/snapshots",
     testFrameworks += new TestFramework("org.scalameter.ScalaMeterFramework"),
     logBuffered := false,
     parallelExecution in Benchmark := false
