@@ -50,10 +50,9 @@ package object heka {
           .partition(k => k.contains("."))
 
       val initialMetaFields = render(
-        Map(
-          "Timestamp" -> m.timestamp
-        )
+        ("Timestamp" -> m.timestamp) ~ ("Type" -> m.dtype) ~ ("Hostname" -> m.hostname)
       )
+
       val metaFields = initialMetaFields merge render(fields.filterKeys(metaKeys.toSet))
 
       val payloadFields =
@@ -118,7 +117,8 @@ package object heka {
   implicit def messageToRichMessage(m: Message): RichMessage = new RichMessage(m)
 
   object RichMessage {
-    def apply (uuid: String, fieldsMap: Map[String, Any], payload: Option[String], timestamp: Long=0): Message = {
+    def apply (uuid: String, fieldsMap: Map[String, Any], payload: Option[String],
+               timestamp: Long=0, dtype: Option[String]=None, hostname: Option[String]=None): Message = {
       val fields = fieldsMap.toList.map{
         case (k: String, v: ByteString) => {
           Field(k, Some(Field.ValueTypeEnum.BYTES), valueBytes=Seq(v))
@@ -136,7 +136,7 @@ package object heka {
           Field(k, Some(Field.ValueTypeEnum.INTEGER), valueInteger=Seq(v))
         }
       }.toSeq
-      Message(ByteString.copyFromUtf8(uuid), timestamp, payload=payload, fields=fields)
+      Message(ByteString.copyFromUtf8(uuid), timestamp, payload=payload, fields=fields, dtype=dtype, hostname=hostname)
     }
   }
 }
