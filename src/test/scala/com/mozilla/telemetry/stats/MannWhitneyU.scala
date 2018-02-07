@@ -30,26 +30,27 @@ class StatsTest extends FlatSpec with Matchers {
   }
 
   "tieCorrect" can "be calculated" in {
-    stats.tieCorrect(Map(1 -> 1)) should equal (1.0)
-    stats.tieCorrect(Map(1 -> 48)) should equal (0.0)
+    stats.tieCorrect(Map(1L -> 1L)) should equal (1.0)
+    stats.tieCorrect(Map(1L -> 48L)) should equal (0.0)
     stats.tieCorrect(
-      Map(1 -> 10, 2 -> 10, 3 -> 10)) should equal (0.889877 +- epsilon)
+      Map(1L -> 10L, 2L -> 10L, 3L -> 10L)) should equal (0.889877 +- epsilon)
   }
 
   "rank" can "be calculated" in {
-    stats.rank(Map(1 -> 1)) should equal (Map(1 -> 1.0))
+    stats.rank(Map(1L -> 1L)) should equal (Map(1L -> 1.0))
     stats.rank(
-      Map(1 -> 5, 2 -> 4, 3 -> 3, 4 -> 2, 5 -> 1)) should equal (
-        Map(1 -> 3.0, 2 -> 7.5, 3 -> 11.0, 4 -> 13.5, 5 -> 15.0))
+      Map(1L -> 5L, 2L -> 4L, 3L -> 3L, 4L -> 2L, 5L -> 1L)) should equal (
+        Map(1L -> 3.0, 2L -> 7.5, 3L -> 11.0, 4L -> 13.5, 5L -> 15.0))
   }
 
   "mwu with normal distribution" can "be calculated" in {
-    val norm1 = Map(0 -> 42, 1 -> 60, 2 -> 92, 3 -> 100, 4 -> 109, 5 -> 120,
-      6 -> 128, 7 -> 92, 8 -> 76, 9 -> 42, 10 -> 50, 11 -> 11, 12 -> 11, 13 -> 1,
-      14 -> 3, 15 -> 3, 16 -> 2, -1 -> 35, -6 -> 1, -5 -> 1, -4 -> 2, -3 -> 4, -2 -> 15)
-    val norm2 = Map(0 -> 6, 1 -> 23, 2 -> 39, 3 -> 91, 4 -> 119, 5 -> 142,
-      6 -> 157, 7 -> 139, 8 -> 122, 9 -> 80, 10 -> 45, 11 -> 20, 12 -> 10,
-      13 -> 4, 14 -> 1, -1 -> 2)
+    val norm1 = Map(0L -> 42L, 1L -> 60L, 2L -> 92L, 3L -> 100L, 4L -> 109L,
+      5L -> 120L, 6L -> 128L, 7L -> 92L, 8L -> 76L, 9L -> 42L, 10L -> 50L,
+      11L -> 11L, 12L -> 11L, 13L -> 1L, 14L -> 3L, 15L -> 3L, 16L -> 2L,
+      -1L -> 35L, -6L -> 1L, -5L -> 1L, -4L -> 2L, -3L -> 4L, -2L -> 15L)
+    val norm2 = Map(0L -> 6L, 1L -> 23L, 2L -> 39L, 3L -> 91L, 4L -> 119L,
+      5L -> 142L, 6L -> 157L, 7L -> 139L, 8L -> 122L, 9L -> 80L, 10L -> 45L,
+      11L -> 20L, 12L -> 10L, 13L -> 4L, 14L -> 1L, -1L -> 2L)
     var res = stats.mwu(norm1, norm2)
     res._1 should equal (381391.0)
     res._2 should equal (1.2950845524396078e-20 +- epsilon)
@@ -59,20 +60,24 @@ class StatsTest extends FlatSpec with Matchers {
   }
 
   "mwu with uniform distribution" can "be calculated" in {
-    val uni1 = Map(1 -> 25, 2 -> 23, 3 -> 17, 4 -> 25, 5 -> 18, 6 -> 15, 7 -> 18,
-      8 -> 21, 9 -> 20, 10 -> 22, 11 -> 25, 12 -> 18, 13 -> 21, 14 -> 17, 15 -> 23,
-      16 -> 16, 17 -> 14, 18 -> 20, 19 -> 18, 20 -> 24, 21 -> 19, 22 -> 26, 23 -> 18,
-      24 -> 20, 25 -> 19, 26 -> 23, 27 -> 16, 28 -> 24, 29 -> 16, 30 -> 21, 31 -> 13,
-      32 -> 16, 33 -> 22, 34 -> 27, 35 -> 22, 36 -> 14, 37 -> 29, 38 -> 22, 39 -> 10,
-      40 -> 23, 41 -> 22, 42 -> 26, 43 -> 19, 44 -> 35, 45 -> 17, 46 -> 23, 47 -> 18,
-      48 -> 16, 49 -> 24)
-    val uni2 = Map(10 -> 15, 11 -> 18, 12 -> 17, 13 -> 16, 14 -> 18, 15 -> 23,
-      16 -> 24, 17 -> 13, 18 -> 15, 19 -> 12, 20 -> 14, 21 -> 23, 22 -> 14, 23 -> 11,
-      24 -> 15, 25 -> 18, 26 -> 22, 27 -> 15, 28 -> 19, 29 -> 14, 30 -> 22, 31 -> 26,
-      32 -> 18, 33 -> 9, 34 -> 25, 35 -> 19, 36 -> 25, 37 -> 17, 38 -> 14, 39 -> 23,
-      40 -> 12, 41 -> 10, 42 -> 20, 43 -> 25, 44 -> 17, 45 -> 26, 46 -> 20, 47 -> 18,
-      48 -> 23, 49 -> 19, 50 -> 16, 51 -> 17, 52 -> 21, 53 -> 20, 54 -> 12, 55 -> 14,
-      56 -> 17, 57 -> 28, 58 -> 16, 59 -> 15)
+    val uni1 = Map(1L -> 25L, 2L -> 23L, 3L -> 17L, 4L -> 25L, 5L -> 18L, 6L ->
+      15L, 7L -> 18L, 8L -> 21L, 9L -> 20L, 10L -> 22L, 11L -> 25L, 12L -> 18L,
+      13L -> 21L, 14L -> 17L, 15L -> 23L, 16L -> 16L, 17L -> 14L, 18L -> 20L,
+      19L -> 18L, 20L -> 24L, 21L -> 19L, 22L -> 26L, 23L -> 18L, 24L -> 20L,
+      25L -> 19L, 26L -> 23L, 27L -> 16L, 28L -> 24L, 29L -> 16L, 30L -> 21L,
+      31L -> 13L, 32L -> 16L, 33L -> 22L, 34L -> 27L, 35L -> 22L, 36L -> 14L,
+      37L -> 29L, 38L -> 22L, 39L -> 10L, 40L -> 23L, 41L -> 22L, 42L -> 26L,
+      43L -> 19L, 44L -> 35L, 45L -> 17L, 46L -> 23L, 47L -> 18L, 48L -> 16L,
+      49L -> 24L)
+    val uni2 = Map(10L -> 15L, 11L -> 18L, 12L -> 17L, 13L -> 16L, 14L -> 18L,
+      15L -> 23L, 16L -> 24L, 17L -> 13L, 18L -> 15L, 19L -> 12L, 20L -> 14L,
+      21L -> 23L, 22L -> 14L, 23L -> 11L, 24L -> 15L, 25L -> 18L, 26L -> 22L,
+      27L -> 15L, 28L -> 19L, 29L -> 14L, 30L -> 22L, 31L -> 26L, 32L -> 18L,
+      33L -> 9L,  34L -> 25L, 35L -> 19L, 36L -> 25L, 37L -> 17L, 38L -> 14L,
+      39L -> 23L, 40L -> 12L, 41L -> 10L, 42L -> 20L, 43L -> 25L, 44L -> 17L,
+      45L -> 26L, 46L -> 20L, 47L -> 18L, 48L -> 23L, 49L -> 19L, 50L -> 16L,
+      51L -> 17L, 52L -> 21L, 53L -> 20L, 54L -> 12L, 55L -> 14L, 56L -> 17L,
+      57L -> 28L, 58L -> 16L, 59L -> 15L)
     var res = stats.mwu(uni1, uni2)
     res._1 should equal (290777.0)
     res._2 should equal (7.03102430020267e-41 +- epsilon)
@@ -82,8 +87,8 @@ class StatsTest extends FlatSpec with Matchers {
   }
 
   "mwu with skewed distribution" can "be calculated" in {
-    val skew1 = Map(0 -> 383, 1 -> 465, 2 -> 137, 3 -> 14, 4 -> 1)
-    val skew2 = Map(0 -> 362, 1 -> 416, 2 -> 107, 3 -> 14, 5 -> 1)
+    val skew1 = Map(0L -> 383L, 1L -> 465L, 2L -> 137L, 3L -> 14L, 4L -> 1L)
+    val skew2 = Map(0L -> 362L, 1L -> 416L, 2L -> 107L, 3L -> 14L, 5L -> 1L)
     var res = stats.mwu(skew1, skew2)
     res._1 should equal (438324.5)
     res._2 should equal (0.14272273391953955 +- epsilon)
@@ -93,8 +98,8 @@ class StatsTest extends FlatSpec with Matchers {
   }
 
   "mwu with same distributions" can "be calculated" in {
-    val norm1 = Map(1 -> 48)
-    val norm2 = Map(1 -> 40)
+    val norm1 = Map(1L -> 48L)
+    val norm2 = Map(1L -> 40L)
     var res = stats.mwu(norm1, norm2)
     res._1 should equal (0.0)
     res._2 should equal (1.0)
