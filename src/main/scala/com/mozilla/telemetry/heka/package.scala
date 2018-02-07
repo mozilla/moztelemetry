@@ -21,7 +21,7 @@ package object heka {
       Map(fields.map(_.name).zip(fields.map(field)): _*)
     }
 
-    /** Reconstructs a Heka message as a json4s JValue.
+    /** Reconstructs a telemetry Heka message as a json4s JValue.
       *
       * The message is parsed and serialized into JSON. Keys that have been extracted
       * into the toplevel document are inserted into to the proper place in the document.
@@ -29,7 +29,7 @@ package object heka {
       * @return reconstructed JValue
       */
     def toJValue: JValue = {
-      val fields = Map(m.fields.map(_.name).zip(m.fields.map(fieldAsJValue)): _*)
+      val fields = m.fields.map(f => (f.name, fieldAsJValue(f))).toMap
 
       lazy val submission = fields.getOrElse("submission", JNothing)
       val payload = m.payload match {
@@ -98,13 +98,13 @@ package object heka {
   private def fieldAsJValue(f: Field): JValue = {
     f.getValueType match {
       case Field.ValueTypeEnum.BYTES => {
-        val bytes = f.valueBytes(0).toStringUtf8
-        Try(parse(bytes)).getOrElse(bytes)
+        val string = f.valueBytes(0).toStringUtf8
+        Try(parse(string)).getOrElse(JString(string))
       }
       case Field.ValueTypeEnum.STRING => {
         val json = Try(parse(f.valueString(0))).getOrElse(JNothing)
         json match {
-          case JObject(x) => json
+          case JObject(_) => json
           case _ => JString(f.valueString(0))
         }
       }
