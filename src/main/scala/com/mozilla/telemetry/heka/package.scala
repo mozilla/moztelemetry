@@ -101,6 +101,8 @@ package object heka {
         Try(parse(string)).getOrElse(JString(string))
       }
       case Field.ValueTypeEnum.STRING => {
+        // Test whether the string is a valid json object. If it's not, then
+        // return it as a string type to avoid implicit casting.
         val json = Try(parse(f.valueString(0))).getOrElse(JNothing)
         json match {
           case JObject(_) => json
