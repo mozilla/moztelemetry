@@ -5,6 +5,8 @@ import org.json4s._
 import org.json4s.jackson.JsonMethods._
 import org.scalatest.{FlatSpec, Matchers}
 
+import scala.util.Random
+
 object MessageFixture {
   val extractPayloadKeys = Set(
     "addonDetails",
@@ -73,7 +75,13 @@ object MessageFixture {
 
   def extractedMessage = generateMessage(extract = true)
 
-  def extractedSimpleMessage = {
+  def extractedSimpleMessage(numElements: Int): RichMessage = {
+
+    val size = 128
+    // generate random strings for fluff
+    val extras = (1 to numElements)
+      .map(i => (s"extra.field_$i", compact("foo" -> (Random.alphanumeric take size mkString))))
+
     RichMessage(
       "simpleMessage",
       Map(
@@ -90,17 +98,25 @@ object MessageFixture {
         "extracted.subfield" -> """{"delta": "4"}""",
         "extracted.nested.subfield" -> """{"epsilon": "5"}""",
         "partiallyExtracted.nested" -> """{"zeta": "6"}"""
-      ),
+      ) ++ extras,
       None
     )
   }
 
-  def simpleMessage = {
+  def simpleMessage(numElements: Int): RichMessage = {
+
+    val size = 128
+    val extras = render(
+      "extra" -> (1 to numElements)
+        .map(i => render(s"field_$i" -> ("foo" -> (Random.alphanumeric take size mkString))))
+        .reduce((a, b) => a merge b)
+    )
+
     RichMessage(
       "simpleMessage",
       Map(
         "submission" ->
-          """
+          compact(parse("""
             | {
             |   "partiallyExtracted" : {
             |     "alpha" : "1",
@@ -120,6 +136,7 @@ object MessageFixture {
             |   }
             | }
           """.stripMargin
+          ) merge extras)
       ),
       None
     )
@@ -136,6 +153,7 @@ class MessageFixtureTest extends FlatSpec with Matchers {
     def removeMeta(json: JValue): JValue = {
       json removeField {
         case JField("meta", _) => true
+        case JField("extra", _) => true
         case _ => false
       }
     }
@@ -148,7 +166,7 @@ class MessageFixtureTest extends FlatSpec with Matchers {
   }
 
   it should "fill a list with separate instances of RichMessages" in {
-    val instantiatedMessage = MessageFixture.simpleMessage
+    val instantiatedMessage = MessageFixture.simpleMessage(1)
     val referencedMessages = List.fill(2)(instantiatedMessage)
 
     // instantiated copies contain the same object, but fieldsAsMap are separate
@@ -156,7 +174,7 @@ class MessageFixtureTest extends FlatSpec with Matchers {
     assert(referencedMessages(0).fieldsAsMap ne referencedMessages(1).fieldsAsMap)
 
     // check that each message is different too
-    val list = List.fill(2)(MessageFixture.simpleMessage)
+    val list = List.fill(2)(MessageFixture.simpleMessage(1))
     assert(list(0) ne list(1))
     assert(list(0).toJValue ne list(1).toJValue)
   }
