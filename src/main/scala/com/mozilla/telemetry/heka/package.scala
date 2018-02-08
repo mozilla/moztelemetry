@@ -10,7 +10,7 @@ import com.google.protobuf.ByteString
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
 import org.json4s.JsonDSL._
-import scala.util.Try
+import scala.util.{Try, Success, Failure}
 
 package object heka {
   class RichMessage(m: Message) {
@@ -26,43 +26,76 @@ package object heka {
       * The message is parsed and serialized into JSON. Keys that have been extracted
       * into the toplevel document are inserted into to the proper place in the document.
       *
-      * @return reconstructed JValue
+      * @return wrapped reconstructed JValue
       */
-    def toJValue: JValue = {
+    def toJValue: Try[JValue] = {
       val fields = m.fields.map(f => (f.name, fieldAsJValue(f))).toMap
 
-      lazy val submission = fields.getOrElse("submission", JNothing)
+      // Parse the document payload. All pings using v4 of the telemetry infrastructure will use
+      // the "submission" field instead of the message payload. This kept for backwards compatibility
+      // with tests and older telemetry data (est. cut-over is February 2017).
       val payload = m.payload match {
-        case Some(payload: String) => {
-          val json = Try(parse(payload)).getOrElse(JNothing)
-          json match {
-            case JObject(x) => json
-            case _ => submission
+        case Some(payload: String) => Try(parse(payload))
+        case _ => {
+          fields.get("submission") match {
+            case Some(submission) => submission match {
+              // submission field must be a json object if it exists
+              case JObject(_) => Success(submission)
+              case _ => Failure(new MappingException("submission field is not an object"))
+            }
+            // continue parsing the message if there is no payload or
+            // submission, effectively treating all fields as metadata
+            case None => Success(JNothing)
           }
         }
-        case _ => submission
       }
 
-      val (extractedKeys, metaKeys) =
-        fields
-          .keys
-          .filter(k => k != "submission")
-          .partition(k => k.contains("."))
+      val initialMetaFields = render(("Timestamp" -> m.timestamp) ~ ("Type" -> m.dtype) ~ ("Hostname" -> m.hostname))
 
-      val initialMetaFields = render(
-        ("Timestamp" -> m.timestamp) ~ ("Type" -> m.dtype) ~ ("Hostname" -> m.hostname)
-      )
-
-      val metaFields = initialMetaFields merge render(fields.filterKeys(metaKeys.toSet))
-
-      val payloadFields =
-        fields
-          .filterKeys(extractedKeys.toSet)
-          .map { case (k, v) => applyNestedField(k.split("\\."), v) }
-          .foldLeft(JNothing.asInstanceOf[JValue]) ((acc, field) =>  acc merge field)
-
-      payload merge payloadFields merge render(("meta" -> metaFields))
+      payload match {
+        case Success(doc: JValue) => {
+          val document = rebuildDocument(doc, initialMetaFields, fields, Seq("submission"))
+          Success(document)
+        }
+        case Failure(_) => payload
+      }
     }
+  }
+
+  /**
+    * Reconstruct the original document structure based on namespacing delimited by periods.
+    *
+    * @param payload      document to merge extracted fields with
+    * @param meta         initial set of meta fields to seed the structure with
+    * @param fields       heka fields that have been deserialized as json values
+    * @param skipFields   fields to skip during reconstruction
+    * @return             reconstructed document
+    */
+  private def rebuildDocument(payload: JValue, meta: JValue, fields: Map[String, JValue], skipFields: Seq[String]): JValue = {
+    val (extractedKeys, metaKeys) =
+      fields
+        .keys
+        .filter(k => !skipFields.contains(k))
+        .partition(k => k.contains("."))
+
+    val metaFields = meta merge render(fields.filterKeys(metaKeys.toSet))
+
+    val payloadFields =
+      fields
+        .filterKeys(extractedKeys.toSet)
+        .map { case (k, v) => applyNestedField(k.split("\\."), v) }
+        .foldLeft(JNothing.asInstanceOf[JValue]) ((acc, field) =>  acc merge field)
+
+    payload merge payloadFields merge render(("meta" -> metaFields))
+  }
+
+  private def applyNestedField(keys: Seq[String], value: JValue): JValue = {
+    def helper(keys: Seq[String], value: JValue): JValue = {
+      if(keys.isEmpty) { value }
+      else { helper(keys.tail, render(Map(keys.head -> value))) }
+    }
+    // this should be applied from right to left e.g foo.bar.baz -> {key: value}
+    helper(keys.reverse, value)
   }
 
   private def field(f: Field): Any = {
@@ -83,15 +116,6 @@ package object heka {
       case Field.ValueTypeEnum.INTEGER => f.valueInteger(0)
       case _ => assert(false)
     }
-  }
-
-  private def applyNestedField(keys: Seq[String], value: JValue): JValue = {
-    def helper(keys: Seq[String], value: JValue): JValue = {
-      if(keys.isEmpty) { value }
-      else { helper(keys.tail, render(Map(keys.head -> value))) }
-    }
-    // this should be applied from right to left e.g foo.bar.baz -> {key: value}
-    helper(keys.reverse, value)
   }
 
   private def fieldAsJValue(f: Field): JValue = {

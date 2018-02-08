@@ -20,7 +20,7 @@ class MessageTest extends FlatSpec with Matchers {
   }
 
   "Message" can "be represented as valid JSON" in {
-    val doc = Resources.message.toJValue
+    val doc = Resources.message.toJValue.get
 
     // check that the field has been casted correctly
     doc \\ "meta" \\ "integer" should be (JInt(42))
@@ -42,18 +42,38 @@ class MessageTest extends FlatSpec with Matchers {
 
   it should "handle documents without extracted fields" in {
     val message = RichMessage("uuid", Resources.message.fieldsAsMap.filterKeys(k => !k.contains(".")), None)
-    message.toJValue
+    message.toJValue.isSuccess should be (true)
   }
 
   it should "handle ambiguous top level types conservatively" in {
-    val message = Resources.message.toJValue
+    val message = Resources.message.toJValue.get
     message \\ "meta" \\ "string-with-int-value" should be (JString("42"))
   }
 
   it should "default to payload" in {
-    val message = Resources.payloadMessage.toJValue
+    val message = Resources.payloadMessage.toJValue.get
     message \ "bronze" should be (JString("plate"))
     message \ "meta" \ "silver" should be (JString("coin"))
     message \ "gold" should be (JNothing)
+  }
+
+  it should "handle broken json in submissions as invalid" in {
+    val message = RichMessage("something", Map("submission" -> """{"broken json"}"""), None).toJValue
+    message.isFailure should be (true)
+  }
+
+  it should "handle non-json values in submissions as invalid" in {
+    val message = RichMessage("something", Map("submission" -> "valid string"), None).toJValue
+    message.isFailure should be (true)
+  }
+
+  it should "handle broken json in payloads as invalid" in {
+    val message = RichMessage("something", Map.empty, Some("""{"broken json"}""")).toJValue
+    message.isFailure should be (true)
+  }
+
+  it should "handle missing submission and payload" in {
+    val message = RichMessage("something", Map("foo" -> "bar"), None).toJValue.get
+    message \ "meta" \ "foo" should be (JString("bar"))
   }
 }
