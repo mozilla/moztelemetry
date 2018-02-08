@@ -8,16 +8,16 @@ import org.scalameter.picklers.noPickler._
 
 object MessageBenchmarkFixture {
   // separate generation of fixtures from access of fixtures via this fixture
-  val messages = Map[String, RichMessage](
+  val messages = Map[String, (Int) => RichMessage](
     "simple" -> MessageFixture.simpleMessage,
-    "simple extracted" -> MessageFixture.extractedSimpleMessage,
-    "telemetry" -> MessageFixture.message,
-    "telemetry extracted" -> MessageFixture.extractedMessage
+    "simple extracted" -> MessageFixture.extractedSimpleMessage
   )
 
-  def generateMessages(messageName: String, sizes: Gen[Int]): Gen[List[RichMessage]] = {
-    for {size <- sizes} yield List.fill(size)(messages(messageName))
-  }
+  def generateMessages(messageNames: Gen[String], sizes: Gen[Int]): Gen[RichMessage] =
+    for {
+      messageName <- messageNames
+      size <- sizes
+    } yield messages(messageName)(size)
 }
 
 class MessageBenchmark extends Bench.ForkedTime {
@@ -26,29 +26,31 @@ class MessageBenchmark extends Bench.ForkedTime {
 
   override def persistor = new SerializationPersistor
 
-  val sizes = Gen.exponential("size")(10, 1000, 10)
+  val sizes = Gen.exponential("size")(1, 1000, 10)
 
   performance of "deserialization speed" in {
-    val input = for {
-      size <- sizes
-      messageName <- Gen.enumeration[String]("message")(messages.keys.toList: _*)
-    } yield List.fill(size)(messages(messageName))
+    val messageNames = Gen.enumeration[String]("message")("simple", "simple extracted")
+    val input = generateMessages(messageNames, sizes)
 
     measure method "fieldsAsMap" in {
-      using(input) in { m => m.foreach(_.fieldsAsMap) }
+      using(input) in {
+        _.fieldsAsMap
+      }
     }
     measure method "toJValue" in {
-      using(input) in { m => m.foreach(_.toJValue) }
+      using(input) in {
+        _.toJValue
+      }
     }
   }
 
   performance of "extraction speed" in {
     performance of "simple extracted" in {
-      val input = generateMessages("simple extracted", sizes)
+      val input = generateMessages(Gen.single("message")("simple extracted"), sizes)
 
       measure method "fieldsAsMap" in {
-        using(input) in { m =>
-          m.map(m => {
+        using(input) in {
+          m => {
             val payload = m.fieldsAsMap
             val submission = parse(payload("submission").asInstanceOf[String])
             (
@@ -57,12 +59,12 @@ class MessageBenchmark extends Bench.ForkedTime {
               parse(payload("partiallyExtracted.nested").asInstanceOf[String]) \\ "zeta",
               parse(payload("extracted.subfield").asInstanceOf[String]) \\ "delta"
             )
-          })
+          }
         }
       }
       measure method "toJValue" in {
-        using(input) in { m =>
-          m.map(m => {
+        using(input) in {
+          m => {
             val submission = m.toJValue
             (
               submission \\ "gamma",
@@ -70,17 +72,17 @@ class MessageBenchmark extends Bench.ForkedTime {
               submission \\ "partiallyExtracted" \\ "nested" \\ "zeta",
               submission \\ "extracted" \\ "subfield" \\ "delta"
             )
-          })
+          }
         }
       }
     }
 
     performance of "telemetry extracted" in {
-      val input = generateMessages("telemetry extracted", sizes)
+      val input = for {name <- Gen.single("message")("telemetry extracted")} yield MessageFixture.extractedMessage
 
       measure method "fieldsAsMap" in {
-        using(input) in { m =>
-          m.map(m => {
+        using(input) in {
+          m => {
             val fields = m.fieldsAsMap
 
             lazy val addons = parse(fields.getOrElse("environment.addons", "{}").asInstanceOf[String])
@@ -105,13 +107,13 @@ class MessageBenchmark extends Bench.ForkedTime {
               settings \\ "locale",
               system \\ "os" \\ "name"
             )
-          })
+          }
         }
       }
 
       measure method "toJValue" in {
-        using(input) in { m =>
-          m.map(m => {
+        using(input) in {
+          m => {
             val submission = m.toJValue
             (
               submission \\ "environment" \\ "addons" \\ "activeExperiment" \\ "id",
@@ -124,7 +126,7 @@ class MessageBenchmark extends Bench.ForkedTime {
               submission \\ "environment" \\ "settings" \\ "locale",
               submission \\ "environment" \\ "system" \\ "os" \\ "name"
             )
-          })
+          }
         }
       }
     }
@@ -139,37 +141,34 @@ class MessageMemoryBenchmark extends Bench.ForkedTime {
 
   override def measurer = new Executor.Measurer.MemoryFootprint
 
-  val sizes = Gen.exponential("size")(10, 1000, 10)
+  val sizes = Gen.exponential("size")(1, 1000, 10)
 
   performance of "extraction memory footprint" in {
     performance of "simple extracted" in {
-      val input = generateMessages("simple extracted", sizes)
+      val input = generateMessages(Gen.single("message")("simple extracted"), sizes)
 
       measure method "fieldsAsMap" in {
         using(input) in {
-          m =>
-            m.map(m => {
-              val payload = m.fieldsAsMap
+          m => {
+            val payload = m.fieldsAsMap
 
-              Seq(
-                payload,
-                parse(payload("submission").asInstanceOf[String]),
-                parse(payload("partiallyExtracted.nested").asInstanceOf[String]),
-                parse(payload("extracted.subfield").asInstanceOf[String])
-              )
-            })
+            // every field is a json blob
+            Seq(payload) ++ payload.map { case (_, v: String) => parse(v) }
+          }
         }
         measure method "toJValue" in {
-          using(input) in { m => m.map(_.toJValue) }
+          using(input) in {
+            _.toJValue
+          }
         }
       }
 
       performance of "telemetry extracted" in {
-        val input = generateMessages("telemetry extracted", sizes)
+        val input = for { name <- Gen.single("message")("telemetry extracted") } yield MessageFixture.extractedMessage
 
         measure method "fieldsAsMap" in {
-          using(input) in { m =>
-            m.map(m => {
+          using(input) in {
+            m => {
               val fields = m.fieldsAsMap
 
               Seq(
@@ -183,12 +182,14 @@ class MessageMemoryBenchmark extends Bench.ForkedTime {
                 parse(fields.getOrElse("environment.settings", "{}").asInstanceOf[String]),
                 parse(fields.getOrElse("environment.system", "{}").asInstanceOf[String])
               )
-            })
+            }
           }
         }
 
         measure method "toJValue" in {
-          using(input) in { m => m.map(_.toJValue) }
+          using(input) in {
+            _.toJValue
+          }
         }
       }
     }
