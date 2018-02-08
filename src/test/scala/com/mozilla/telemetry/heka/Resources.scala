@@ -34,7 +34,7 @@ object Resources {
       "extracted.nested.subfield"-> """{"epsilon": "5"}""",
       "partiallyExtracted.nested" -> """{"zeta": "6"}"""
   ),
-    Some("payload")
+    None
   )
 
   val payloadMessage = RichMessage(
