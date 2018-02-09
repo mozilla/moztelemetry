@@ -33,7 +33,7 @@ Run the tests in the docker container:
 Other test tasks can by run by passing the task through the test script, e.g.:
 
 ```
-./bin/test "testOnly com.mozilla.telemetry.stats.StatsTest"
+./bin/test "testOnly com.mozilla.telemetry.statistics.StatsTest"
 ```
 
 ## Publishing snapshots

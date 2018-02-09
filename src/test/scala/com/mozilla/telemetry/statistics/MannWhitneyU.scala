@@ -4,13 +4,13 @@
  file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package com.mozilla.telemetry.stats
+package com.mozilla.telemetry.statistics
 
 import org.scalatest.{FlatSpec, Matchers}
-import com.mozilla.telemetry.stats
+import com.mozilla.telemetry.{statistics => stats}
 
 
-class StatsTest extends FlatSpec with Matchers {
+class StatisticsTest extends FlatSpec with Matchers {
 
   val epsilon = 0.000001
 
