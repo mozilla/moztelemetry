@@ -9,7 +9,7 @@ package com.mozilla.telemetry
 import scala.collection.Map
 
 
-package object stats {
+package object statistics {
 
   def erf(x: Double): Double =  {
     /*
