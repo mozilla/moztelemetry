@@ -42,7 +42,7 @@ class MessageTest extends FlatSpec with Matchers {
 
   it should "handle documents without extracted fields" in {
     val message = RichMessage("uuid", Resources.message.fieldsAsMap.filterKeys(k => !k.contains(".")), None)
-    message.toJValue.isSuccess should be (true)
+    message.toJValue.isDefined should be (true)
   }
 
   it should "handle ambiguous top level types conservatively" in {
@@ -59,17 +59,17 @@ class MessageTest extends FlatSpec with Matchers {
 
   it should "handle broken json in submissions as invalid" in {
     val message = RichMessage("something", Map("submission" -> """{"broken json"}"""), None).toJValue
-    message.isFailure should be (true)
+    message.isEmpty should be (true)
   }
 
   it should "handle non-json values in submissions as invalid" in {
     val message = RichMessage("something", Map("submission" -> "valid string"), None).toJValue
-    message.isFailure should be (true)
+    message.isEmpty should be (true)
   }
 
   it should "handle broken json in payloads as invalid" in {
     val message = RichMessage("something", Map.empty, Some("""{"broken json"}""")).toJValue
-    message.isFailure should be (true)
+    message.isEmpty should be (true)
   }
 
   it should "handle missing submission and payload" in {

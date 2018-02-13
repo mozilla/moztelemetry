@@ -10,7 +10,7 @@ import com.google.protobuf.ByteString
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
 import org.json4s.JsonDSL._
-import scala.util.{Try, Success, Failure}
+import scala.util.Try
 
 package object heka {
   class RichMessage(m: Message) {
@@ -26,38 +26,40 @@ package object heka {
       * The message is parsed and serialized into JSON. Keys that have been extracted
       * into the toplevel document are inserted into to the proper place in the document.
       *
+      * This method will be None if there is an error parsing the payload or submission.
+      *
       * @return wrapped reconstructed JValue
       */
-    def toJValue: Try[JValue] = {
+    def toJValue: Option[JValue] = {
       val fields = m.fields.map(f => (f.name, fieldAsJValue(f))).toMap
 
       // Parse the document payload. All pings using v4 of the telemetry infrastructure will use
       // the "submission" field instead of the message payload. This kept for backwards compatibility
       // with tests and older telemetry data (est. cut-over is February 2017).
       val payload = m.payload match {
-        case Some(payload: String) => Try(parse(payload))
+        case Some(payload: String) => Try(parse(payload)).toOption
         case _ => {
           fields.get("submission") match {
             case Some(submission) => submission match {
               // submission field must be a json object if it exists
-              case JObject(_) => Success(submission)
-              case _ => Failure(new MappingException("submission field is not an object"))
+              case JObject(_) => Some(submission)
+              case _ => None
             }
             // continue parsing the message if there is no payload or
             // submission, effectively treating all fields as metadata
-            case None => Success(JNothing)
+            case None => Some(JNothing)
           }
         }
       }
 
-      val initialMetaFields = render(("Timestamp" -> m.timestamp) ~ ("Type" -> m.dtype) ~ ("Hostname" -> m.hostname))
+      val meta = ("Timestamp" -> m.timestamp) ~ ("Type" -> m.dtype) ~ ("Hostname" -> m.hostname)
 
       payload match {
-        case Success(doc: JValue) => {
-          val document = rebuildDocument(doc, initialMetaFields, fields, Seq("submission"))
-          Success(document)
+        case Some(doc: JValue) => {
+          val document = rebuildDocument(doc, meta, fields, Seq("submission"))
+          Some(document)
         }
-        case Failure(_) => payload
+        case _ => None
       }
     }
   }
@@ -84,7 +86,7 @@ package object heka {
       fields
         .filterKeys(extractedKeys.toSet)
         .map { case (k, v) => applyNestedField(k.split("\\."), v) }
-        .foldLeft(JNothing.asInstanceOf[JValue]) ((acc, field) =>  acc merge field)
+        .foldLeft(JNothing.asInstanceOf[JValue]) (_ merge _)
 
     payload merge payloadFields merge render(("meta" -> metaFields))
   }
