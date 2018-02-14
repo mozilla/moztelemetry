@@ -6,8 +6,10 @@
 
 package com.mozilla.telemetry
 
+import scala.collection.Map
 
-package object stats {
+
+package object statistics {
 
   def erf(x: Double): Double =  {
     /*
@@ -49,8 +51,8 @@ package object stats {
     }
   }
 
-  def tieCorrect(sample: Map[Int, Int]): Double = {
-    val n = sample.foldLeft[Int](0)(_ + _._2)
+  def tieCorrect(sample: Map[Long, Long]): Double = {
+    val n = sample.foldLeft[Long](0L)(_ + _._2)
 
     (n) match {
       case a if a < 2 => 1.0
@@ -60,22 +62,22 @@ package object stats {
     }
   }
 
-  def rank(sample: Map[Int, Int]): Map[Int, Double] = {
-    val sorted = scala.collection.immutable.SortedMap[Int, Int]() ++ sample
+  def rank(sample: Map[Long, Long]): Map[Long, Double] = {
+    val sorted = scala.collection.immutable.SortedMap[Long, Long]() ++ sample
 
-    sorted.foldLeft(1, Map.empty[Int, Double]){
+    sorted.foldLeft(1L, Map.empty[Long, Double]){
       case ((sum, ranks), (k, v)) => {
         (sum + v, ranks + (k -> (sum + (v.toDouble - 1) / 2)))
       }
     }._2
   }
 
-  def mwu(sample1: Map[Int, Int], sample2: Map[Int, Int],
+  def mwu(sample1: Map[Long, Long], sample2: Map[Long, Long],
           useContinuity: Boolean = true): (Double, Double) = {
     // Merge maps, adding values if keys match.
     val sample = sample1 ++ sample2.map {
-      case (k,v) => {
-        k -> (v + sample1.getOrElse(k, 0))
+      case (k, v) => {
+        k -> (v + sample1.getOrElse(k, 0L))
       }
     }
 
@@ -83,8 +85,8 @@ package object stats {
     val sumOfRanks = sample1.foldLeft[Double](0.0) {
       (sum, i) => sum + (i._2 * ranks(i._1))
     }
-    val n1 = sample1.foldLeft[Int](0)(_ + _._2)
-    val n2 = sample2.foldLeft[Int](0)(_ + _._2)
+    val n1 = sample1.foldLeft[Long](0L)(_ + _._2)
+    val n2 = sample2.foldLeft[Long](0L)(_ + _._2)
 
     // Calculate Mann-Whitney U for both samples.
     val u1 = sumOfRanks - (n1 * (n1 + 1)) / 2
