@@ -54,13 +54,7 @@ package object heka {
 
       val meta = ("Timestamp" -> m.timestamp) ~ ("Type" -> m.dtype) ~ ("Hostname" -> m.hostname)
 
-      payload match {
-        case Some(doc: JValue) => {
-          val document = rebuildDocument(doc, meta, fields, Seq("submission"))
-          Some(document)
-        }
-        case _ => None
-      }
+      payload.map(doc => rebuildDocument(doc, meta, fields, Seq("submission")))
     }
   }
 
