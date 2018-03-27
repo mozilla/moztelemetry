@@ -1,9 +1,9 @@
 machine:
   pre:
-    # Install sbt 1.0.4
+    # Install sbt 1.1.1
     - sudo apt-get install openjdk-8-jdk
-    - wget -q https://dl.bintray.com/sbt/debian/sbt-1.0.4.deb
-    - sudo dpkg -i sbt-1.0.4.deb
+    - wget -q https://dl.bintray.com/sbt/debian/sbt-1.1.1.deb
+    - sudo dpkg -i sbt-1.1.1.deb
   cache_directories:
     - "~/.ivy2"
     - "~/.sbt"
