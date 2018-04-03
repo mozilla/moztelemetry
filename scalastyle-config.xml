@@ -56,7 +56,6 @@
     <check level="error" class="org.scalastyle.scalariform.NoWhitespaceBeforeLeftBracketChecker" enabled="true"></check>
     <check level="error" class="org.scalastyle.scalariform.NoWhitespaceAfterLeftBracketChecker" enabled="true"></check>
     <check level="error" class="org.scalastyle.scalariform.ReturnChecker" enabled="true"></check>
-    <check level="error" class="org.scalastyle.scalariform.NullChecker" enabled="false"></check>
     <check level="error" class="org.scalastyle.scalariform.NoCloneChecker" enabled="true"></check>
     <check level="error" class="org.scalastyle.scalariform.NoFinalizeChecker" enabled="true"></check>
     <check level="error" class="org.scalastyle.scalariform.CovariantEqualsChecker" enabled="true"></check>
@@ -71,7 +70,7 @@
             <parameter name="maxTypes"><![CDATA[30]]></parameter>
         </parameters>
     </check>
-    <check level="error" class="org.scalastyle.scalariform.CyclomaticComplexityChecker" enabled="false">
+    <check level="error" class="org.scalastyle.scalariform.CyclomaticComplexityChecker" enabled="true">
         <parameters>
             <parameter name="maximum"><![CDATA[10]]></parameter>
         </parameters>
@@ -101,5 +100,4 @@
     </check>
     <check level="error" class="org.scalastyle.scalariform.PublicMethodsHaveTypeChecker" enabled="true"></check>
     <check level="error" class="org.scalastyle.file.NewLineAtEofChecker" enabled="true"></check>
-    <check level="error" class="org.scalastyle.file.NoNewLineAtEofChecker" enabled="false"></check>
 </scalastyle>
