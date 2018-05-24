@@ -18,7 +18,8 @@ libraryDependencies ++= Seq(
   "com.storm-enroute" %% "scalameter" % "0.8.2" % "bench",
   "com.github.seratch" %% "awscala" % "0.5.+",
   "com.amazonaws" % "aws-java-sdk" % "1.11.83",
-  "com.google.protobuf" % "protobuf-java" % "2.5.0"
+  "com.google.protobuf" % "protobuf-java" % "2.5.0",
+  "org.yaml" % "snakeyaml" % "1.21"
 )
 
 /*
