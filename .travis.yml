@@ -13,7 +13,7 @@ matrix:
 install:
   - pip install flask moto --user
 script:
-  - moto_server s3 -p 8001 &
+  - moto_server s3 -p 8001 2>/dev/null &
   - sbt -Dspark.testVersion=$TEST_SPARK_VERSION ++$TRAVIS_SCALA_VERSION coverage test coverageReport
   - sbt ++$TRAVIS_SCALA_VERSION scalastyle
   - sbt ++$TRAVIS_SCALA_VERSION "test:scalastyle"

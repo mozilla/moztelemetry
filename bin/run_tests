@@ -6,7 +6,7 @@ set -e
 export AWS_ACCESS_KEY_ID=foo
 export AWS_SECRET_ACCESS_KEY=foo
 
-moto_server s3 -p 8001 &
+moto_server s3 -p 8001 2>/dev/null &
 if [ $# -gt 0 ]; then
   sbt "$@"
 else
