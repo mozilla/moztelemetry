@@ -13,9 +13,11 @@ class ProcessesClass {
   protected val getURL: (String, String) => scala.io.Source = Source.fromURL
 
   protected lazy val parsedProcesses: Map[String, Seq[Process]] = {
-    val uris = Map("release" -> "https://hg.mozilla.org/releases/mozilla-release/raw-file/tip/toolkit/components/telemetry/Processes.yaml",
-      "beta" -> "https://hg.mozilla.org/releases/mozilla-beta/raw-file/tip/toolkit/components/telemetry/Processes.yaml",
-      "nightly" -> "https://hg.mozilla.org/mozilla-central/raw-file/tip/toolkit/components/telemetry/Processes.yaml")
+    val raw = (branch: String) => s"""https://hg.mozilla.org/$branch/raw-file/tip/toolkit/components/telemetry/Processes.yaml"""
+    val uris = Map(
+      "release" -> raw("releases/mozilla-release"),
+      "beta" -> raw("releases/mozilla-beta"),
+      "nightly" -> raw("mozilla-central"))
     val sources = uris.map { case (key, value) => key -> getURL(value, "UTF8") }
     sources.map { case (key, source) => {
       val parsed = (new Yaml().load(source.mkString)).asInstanceOf[util.LinkedHashMap[String, util.LinkedHashMap[String, String]]]
