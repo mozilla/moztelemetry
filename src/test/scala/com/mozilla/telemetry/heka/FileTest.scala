@@ -5,7 +5,6 @@ package com.mozilla.telemetry.heka
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream}
 
-import org.scalatest.Assertions.{assertThrows}
 import org.scalatest.{FlatSpec, Matchers}
 import org.xerial.snappy.Snappy
 

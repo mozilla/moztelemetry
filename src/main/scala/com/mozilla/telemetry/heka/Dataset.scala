@@ -10,6 +10,7 @@ import org.json4s._
 import org.json4s.jackson.JsonMethods.parse
 
 import scala.io.Source
+import scala.language.implicitConversions
 
 private case class Schema(dimensions: List[Dimension])
 private case class Dimension(fieldName: String)
