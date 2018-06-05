@@ -1,11 +1,6 @@
 <scalastyle>
     <name>Scalastyle standard configuration</name>
     <check level="error" class="org.scalastyle.file.FileTabChecker" enabled="true"></check>
-    <check level="error" class="org.scalastyle.file.FileLengthChecker" enabled="true">
-        <parameters>
-            <parameter name="maxFileLength"><![CDATA[800]]></parameter>
-        </parameters>
-    </check>
     <check level="error" class="org.scalastyle.file.HeaderMatchesChecker" enabled="true">
         <parameters>
             <parameter name="header"><![CDATA[/* This Source Code Form is subject to the terms of the Mozilla Public
@@ -48,15 +43,9 @@
             <parameter name="maxParameters"><![CDATA[8]]></parameter>
         </parameters>
     </check>
-    <check level="error" class="org.scalastyle.scalariform.MagicNumberChecker" enabled="false">
-        <parameters>
-            <parameter name="ignore"><![CDATA[-1,0,1,2,3]]></parameter>
-        </parameters>
-    </check>
     <check level="error" class="org.scalastyle.scalariform.NoWhitespaceBeforeLeftBracketChecker" enabled="true"></check>
     <check level="error" class="org.scalastyle.scalariform.NoWhitespaceAfterLeftBracketChecker" enabled="true"></check>
-    <check level="error" class="org.scalastyle.scalariform.ReturnChecker" enabled="true"></check>
-    <check level="error" class="org.scalastyle.scalariform.NullChecker" enabled="false"></check>
+    <check customId="return" level="error" class="org.scalastyle.scalariform.ReturnChecker" enabled="true"></check>
     <check level="error" class="org.scalastyle.scalariform.NoCloneChecker" enabled="true"></check>
     <check level="error" class="org.scalastyle.scalariform.NoFinalizeChecker" enabled="true"></check>
     <check level="error" class="org.scalastyle.scalariform.CovariantEqualsChecker" enabled="true"></check>
@@ -71,22 +60,12 @@
             <parameter name="maxTypes"><![CDATA[30]]></parameter>
         </parameters>
     </check>
-    <check level="error" class="org.scalastyle.scalariform.CyclomaticComplexityChecker" enabled="false">
-        <parameters>
-            <parameter name="maximum"><![CDATA[10]]></parameter>
-        </parameters>
-    </check>
     <check level="error" class="org.scalastyle.scalariform.UppercaseLChecker" enabled="true"></check>
     <check level="error" class="org.scalastyle.scalariform.SimplifyBooleanExpressionChecker" enabled="true"></check>
     <check level="error" class="org.scalastyle.scalariform.IfBraceChecker" enabled="true">
         <parameters>
             <parameter name="singleLineAllowed"><![CDATA[true]]></parameter>
             <parameter name="doubleLineAllowed"><![CDATA[false]]></parameter>
-        </parameters>
-    </check>
-    <check customId="methodLength" level="error" class="org.scalastyle.scalariform.MethodLengthChecker" enabled="true">
-        <parameters>
-            <parameter name="maxLength"><![CDATA[100]]></parameter>
         </parameters>
     </check>
     <check customId="methodName" level="error" class="org.scalastyle.scalariform.MethodNamesChecker" enabled="true">
@@ -101,5 +80,48 @@
     </check>
     <check level="error" class="org.scalastyle.scalariform.PublicMethodsHaveTypeChecker" enabled="true"></check>
     <check level="error" class="org.scalastyle.file.NewLineAtEofChecker" enabled="true"></check>
+
+    <!--=============================================================================================================-->
+    <!--                                              temporary rules                                                -->
+    <!--=============================================================================================================-->
+    <check level="warn" class="org.scalastyle.scalariform.IllegalImportsChecker" enabled="true">
+        <parameters>
+            <parameter name="illegalImports"><![CDATA[org.joda._]]></parameter>
+        </parameters>
+    </check>
+
+    <!--=============================================================================================================-->
+    <!--                                     rules we don't want to enforce yet                                      -->
+    <!--=============================================================================================================-->
+    <check level="warning" class="org.scalastyle.scalariform.UnderscoreImportChecker" enabled="false">
+        <parameters>
+            <parameter name="ignoreRegex">collection\.JavaConverters\._|scala\.concurrent\.duration\._|spark\.implicits\._</parameter>
+        </parameters>
+    </check>
+
+    <!--=============================================================================================================-->
+    <!--                                       rules we don't want to enforce                                        -->
+    <!--=============================================================================================================-->
+    <check level="error" class="org.scalastyle.scalariform.CyclomaticComplexityChecker" enabled="false">
+        <parameters>
+            <parameter name="maximum"><![CDATA[10]]></parameter>
+        </parameters>
+    </check>
+    <check level="error" class="org.scalastyle.scalariform.MagicNumberChecker" enabled="false">
+        <parameters>
+            <parameter name="ignore"><![CDATA[-1,0,1,2,3]]></parameter>
+        </parameters>
+    </check>
     <check level="error" class="org.scalastyle.file.NoNewLineAtEofChecker" enabled="false"></check>
+    <check level="error" class="org.scalastyle.scalariform.NullChecker" enabled="false"></check>
+    <check level="error" class="org.scalastyle.file.FileLengthChecker" enabled="false">
+        <parameters>
+            <parameter name="maxFileLength"><![CDATA[800]]></parameter>
+        </parameters>
+    </check>
+    <check level="error" class="org.scalastyle.scalariform.MethodLengthChecker" enabled="false">
+        <parameters>
+            <parameter name="maxLength"><![CDATA[100]]></parameter>
+        </parameters>
+    </check>
 </scalastyle>

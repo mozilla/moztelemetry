@@ -52,6 +52,13 @@ lazy val root =
 )
 publishArtifact in Benchmark := false
 
+scalacOptions ++= Seq(
+  "-feature",
+  "-Ywarn-unused",
+  "-Ywarn-unused-import",
+  "-Xfatal-warnings"
+)
+
 publishMavenStyle := true
 
 publishTo := {

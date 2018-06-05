@@ -4,9 +4,11 @@
 package com.mozilla.telemetry
 
 import com.google.protobuf.ByteString
+import org.json4s.JsonDSL._
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
-import org.json4s.JsonDSL._
+
+import scala.language.implicitConversions
 import scala.util.Try
 
 package object heka {
