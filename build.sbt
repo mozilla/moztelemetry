@@ -50,6 +50,7 @@ lazy val root =
     logBuffered := false,
     parallelExecution in Benchmark := false
 )
+publishArtifact in Benchmark := false
 
 publishMavenStyle := true
 
