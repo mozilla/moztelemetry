@@ -69,6 +69,10 @@ publishTo := {
     Some("releases"  at localMaven + "releases")
 }
 
+// Make sure we don't include benchmark dependencies in the pom
+// https://github.com/sbt/sbt/issues/1380#issuecomment-388057539
+makePomConfiguration := makePomConfiguration.value.withConfigurations(Configurations.defaultMavenConfigurations)
+
 pomExtra := (
   <url>https://github.com/mozilla/moztelemetry</url>
     <licenses>
