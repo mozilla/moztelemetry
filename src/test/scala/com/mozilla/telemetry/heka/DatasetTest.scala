@@ -8,7 +8,7 @@ import java.io.{ByteArrayInputStream, InputStream}
 import com.amazonaws.services.s3.S3ClientOptions
 import com.amazonaws.services.s3.model.ObjectMetadata
 import com.mozilla.telemetry.utils.{ObjectSummary, S3Store}
-import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.sql.SparkSession
 import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
 
 class DatasetTest extends FlatSpec with Matchers with BeforeAndAfterAll {
@@ -119,9 +119,8 @@ class DatasetTest extends FlatSpec with Matchers with BeforeAndAfterAll {
   }
 
   "Records" should "not be missing" in {
-    val sparkConf = new SparkConf().setAppName("DatasetTest")
-    sparkConf.setMaster(sparkConf.get("spark.master", "local[1]"))
-    implicit val sc = new SparkContext(sparkConf)
+    val spark = SparkSession.builder().master("local[1]").getOrCreate()
+    implicit val sc = spark.sparkContext
 
     try {
       val records = Dataset("telemetry")
@@ -140,9 +139,8 @@ class DatasetTest extends FlatSpec with Matchers with BeforeAndAfterAll {
   }
 
   "Reads from S3" should "fail silently" in {
-    val sparkConf = new SparkConf().setAppName("DatasetTest")
-    sparkConf.setMaster(sparkConf.get("spark.master", "local[1]"))
-    implicit val sc = new SparkContext(sparkConf)
+    val spark = SparkSession.builder().master("local[1]").getOrCreate()
+    implicit val sc = spark.sparkContext
 
     try {
       val records = Dataset("telemetry")
