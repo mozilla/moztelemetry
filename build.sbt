@@ -19,16 +19,8 @@ libraryDependencies ++= Seq(
   "com.storm-enroute" %% "scalameter" % "0.8.2" % "bench",
   "com.github.seratch" %% "awscala" % "0.5.+",
   "com.amazonaws" % "aws-java-sdk" % "1.11.83",
-  "com.google.protobuf" % "protobuf-java" % "2.5.0",
   "org.yaml" % "snakeyaml" % "1.21"
 )
-
-/*
- The HBase client requires protobuf-java 2.5.0 but scalapb uses protobuf-java 3.x
- so we have to force the dependency here. This should be fine as we are using only
- version 2 of the protobuf spec.
-*/
-dependencyOverrides += "com.google.protobuf" % "protobuf-java" % "2.5.0"
 
 // Compile proto files
 PB.targets in Compile := Seq(
