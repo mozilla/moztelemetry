@@ -12,6 +12,7 @@ resolvers += Resolver.bintrayRepo("findify", "maven")
 
 libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-core" % sparkVersion % "provided",
+  "org.apache.spark" %% "spark-sql" % sparkVersion % "provided",
   "org.scalatest" %% "scalatest" % "3.0.4" % "test, bench",
   "org.json4s" %% "json4s-jackson" % "3.2.11",
   "commons-io" % "commons-io" % "1.3.2" % "test",
