@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package com.mozilla.telemetry.heka
 
+import org.apache.spark.sql.SparkSession
 import org.scalatest.{FlatSpec, Matchers}
 import org.json4s._
 
@@ -72,5 +73,11 @@ class MessageTest extends FlatSpec with Matchers {
   it should "handle missing submission and payload" in {
     val message = RichMessage("something", Map("foo" -> "bar"), None).toJValue.get
     message \ "meta" \ "foo" should be (JString("bar"))
+  }
+
+  it should "be serializable" in {
+    val spark = SparkSession.builder().master("local[1]").getOrCreate()
+    val message = RichMessage("something", Map("foo" -> "bar"), None)
+    spark.sparkContext.parallelize(List(message)).count() should be (1)
   }
 }
