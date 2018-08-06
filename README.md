@@ -36,6 +36,34 @@ Other test tasks can by run by passing the task through the test script, e.g.:
 ./bin/test "testOnly com.mozilla.telemetry.statistics.StatsTest"
 ```
 
+### Integrating test builds locally
+
+When making changes, you should test them locally in a dependent project before
+publishing a new SNAPSHOT version to S3, since any breaking changes will be
+automatically integrated into downstream jobs on next build.
+
+To integrate your changes, you first must publish them to your local ivy repository:
+
+```
+sbt publishLocal
+```
+
+This will populate files under
+`~/.ivy2/local/com.mozilla.telemetry/moztelemetry_2.11`.
+
+All `sbt` projects by default are configured to have the local ivy repository as
+the first resolver, so your locally published artifacts _should_ take precedence
+over the snapshots in S3. So, any subsequent local build of `telemetry-streaming`,
+`telemetry-batch-view`, etc. should pull in your locally published snapshot.
+
+To test that your changes haven't broken `telemetry-streaming`, for example,
+run its test suite:
+
+```
+cd telemetry-streaming/
+sbt test
+```
+
 ### Running benchmarks
 
 Benchmarks of the deserialization process can be run using the testing script:
