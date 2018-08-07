@@ -19,7 +19,8 @@ class DatasetTest extends FlatSpec with Matchers with BeforeAndAfterAll {
   private def hekaStream: InputStream = new ByteArrayInputStream(hekaFile)
 
   override def beforeAll: Unit = {
-    client.setEndpoint("http://127.0.0.1:8001")
+    val motoHost: String = sys.env.getOrElse("MOTO_HOST", "localhost")
+    client.setEndpoint(s"http://$motoHost:5000")
     client.setS3ClientOptions(S3ClientOptions
       .builder()
       .setPathStyleAccess(true)

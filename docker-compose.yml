@@ -1,0 +1,24 @@
+version: '2'
+services:
+  moto:
+    image: jklukas/moto:1.3.4
+    ports:
+      - 5000:5000
+    command:
+      - s3
+  sbt:
+    image: mozilla/sbt:8u171_1.1.6
+    depends_on:
+      - moto
+    volumes:
+      - ~/.ivy2:/root/.ivy2
+      - ~/.sbt:/root/.sbt
+      - .:/root
+    working_dir: /root
+    environment:
+      AWS_ACCESS_KEY_ID: foo
+      AWS_SECRET_ACCESS_KEY: foo
+      MOTO_HOST: moto
+    entrypoint: sbt
+    # If no command is passed to `docker-compose run`, then run everything CI does.
+    command: scalastyle test:scalastyle test

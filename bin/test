@@ -1,7 +1,0 @@
-#!/bin/bash -x
-
-# abort immediately on any failure
-set -e
-
-docker run -t -i -v $PWD:/root \
-	-p 8001:8001 moztelemetry ./bin/run_tests "$@"
