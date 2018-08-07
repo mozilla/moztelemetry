@@ -16,24 +16,22 @@ libraryDependencies += "com.mozilla.telemetry" %% "moztelemetry" % "1.1-SNAPSHOT
 
 ## Testing
 
-To run the tests, build the docker container and run the tests.
+The only dependency you'll need to have installed is `docker-compose`
+which should be included with the 
+[official Docker distribution for your system](https://www.docker.com/get-started).
 
-Build the container. You only have to do this once or when you update the Dockerfile:
-
-```
-docker build -t moztelemetry .
-```
-
-Run the tests in the docker container:
+To run the tests, use the `./bin/sbt` wrapper:
 
 ```
-./bin/test
+# Will spin up moto and sbt via docker-compose, and run all the CI tests.
+./bin/sbt
 ```
 
-Other test tasks can by run by passing the task through the test script, e.g.:
+For a faster, more targeted test, you might want to avoid spinning up the
+S3 mock server and specify a specific suite to run:
 
 ```
-./bin/test "testOnly com.mozilla.telemetry.statistics.StatsTest"
+DOCKER_COMPOSE_ARGS='--no-deps' ./bin/sbt 'testOnly *StatisticsTest'
 ```
 
 ### Running benchmarks
@@ -41,7 +39,7 @@ Other test tasks can by run by passing the task through the test script, e.g.:
 Benchmarks of the deserialization process can be run using the testing script:
 ```
 # via docker
-./bin/test bench:test
+./bin/sbt bench:test
 
 # directly
 sbt bench:test
@@ -49,7 +47,7 @@ sbt bench:test
 
 ## Publishing snapshots
 
-Snapshots will now be published to our local maven repo in s3 on every commit merged into master via a circleci build
+Snapshots will be published to our local maven repo in S3 on every commit merged into master via a CircleCI job.
 
 ## Inspecting the Generated Protoc Case Classes
 

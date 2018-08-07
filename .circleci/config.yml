@@ -1,0 +1,129 @@
+####################
+# CircleCI configuration reference:
+#   https://circleci.com/docs/2.0/configuration-reference
+####################
+# CircleCI built-in environment variables:
+#   https://circleci.com/docs/2.0/env-vars/#built-in-environment-variables
+####################
+
+
+####################
+# Templates: see "anchors" in https://learnxinyminutes.com/docs/yaml/
+####################
+
+# See available image tags at https://hub.docker.com/r/mozilla/sbt/
+sbt_image: &sbt_image mozilla/sbt:8u171_1.1.6
+
+# The ~/.sbt directory holds any sbt or Scala versions requested by previous builds.
+# The ~/.ivy2 directory holds Java and Scala dependencies declared in the build.
+# Caching these two can significantly reduce sbt startup time.
+save_cache_settings: &save_cache_settings
+  key: moztelemetry-{{ .Branch }}-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+  paths:
+    - ~/.ivy2
+    - ~/.sbt
+
+prep_cache_settings: &prep_cache_settings
+  name: Clean directories to restore
+  command: |
+    rm -r ~/.ivy2 ~/.sbt
+
+restore_cache_settings: &restore_cache_settings
+  keys:
+    - moztelemetry-{{ .Branch }}-{{ .Environment.CIRCLE_WORKFLOW_ID }}
+    - moztelemetry-{{ .Branch }}
+    - moztelemetry-
+
+early_return_for_skip_tests: &early_return_for_skip_tests
+  name: Early return if the latest non-merge commit message contains "[skip-tests]"
+  command: |
+    COMMIT_MESSAGE=$(git log --format=%B --no-merges -n 1)
+    if [[ "$COMMIT_MESSAGE" =~ "[skip-tests]" ]]; then
+      echo "Skipping tests due to [skip-tests] flag, so marking this step successful"
+      circleci step halt
+    fi
+
+
+####################
+# Jobs: see https://circleci.com/docs/2.0/jobs-steps/
+####################
+
+version: 2
+jobs:
+
+  test:
+    docker:
+      - image: *sbt_image
+        environment:
+          - AWS_ACCESS_KEY_ID: foo
+          - AWS_SECRET_ACCESS_KEY: foo
+          - MOTO_HOST: moto
+      # We'd like to replace this with a mozilla-managed image; see
+      # https://bugzilla.mozilla.org/show_bug.cgi?id=1481816
+      - image: jklukas/moto:1.3.4
+        command: s3
+        name: moto
+        environment:
+          - AWS_ACCESS_KEY_ID: foo
+          - AWS_SECRET_ACCESS_KEY: foo
+    steps:
+      - checkout
+      - run: *early_return_for_skip_tests
+      - run: *prep_cache_settings
+      - restore_cache: *restore_cache_settings
+      - run:
+          name: Scalatest
+          command: |
+            sbt coverage test coverageReport
+      - run:
+          name: Submit code coverage data
+          command: |
+            bash <(curl -s https://codecov.io/bash)
+
+  lint:
+    docker:
+      - image: *sbt_image
+    steps:
+      - checkout
+      - run: *early_return_for_skip_tests
+      - run: *prep_cache_settings
+      - restore_cache: *restore_cache_settings
+      - run:
+          name: Scalastyle
+          command: |
+            sbt scalastyle test:scalastyle
+      # All the jobs here access the same cache, so only one of the jobs needs to save it;
+      # we choose the lint job because it runs quickly and the extra time to archive and upload
+      # the cache will have the least impact here.
+      - save_cache: *save_cache_settings
+
+  publish:
+    docker:
+      - image: *sbt_image
+    steps:
+      - checkout
+      - run: *prep_cache_settings
+      - restore_cache: *restore_cache_settings
+      - run:
+          name: Publish
+          command: |
+            sbt publish
+
+
+####################
+# Workflows: see https://circleci.com/docs/2.0/workflows/
+####################
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - test
+      - lint
+      - publish:
+          requires:
+            - test
+            - lint
+          filters:
+            branches:
+              only: master
