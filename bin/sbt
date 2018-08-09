@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Wrapper script for executing sbt and linked services via docker-compose.
+# Useful for local development without installing Java and sbt.
+
+set -e
+set -x
+
+# Create dirs to cache .ivy2 and .sbt if they don't exist already.
+mkdir -p ~/.ivy2/ ~/.sbt/
+
+docker-compose run $DOCKER_COMPOSE_ARGS sbt "$@"
+
+docker-compose down
