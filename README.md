@@ -1,6 +1,10 @@
-[![Build Status](https://travis-ci.org/mozilla/moztelemetry.svg?branch=master)](https://travis-ci.org/mozilla/moztelemetry)
-[![codecov.io](https://codecov.io/github/mozilla/moztelemetry/coverage.svg?branch=master)](https://codecov.io/github/mozilla/moztelemetry?branch=master)
-[![CircleCi](https://circleci.com/gh/mozilla/moztelemetry.svg?style=shield&circle-token=3fff2168f7d8da61b47bd1481c4fcb984ec88ef5)](https://circleci.com/gh/mozilla/moztelemetry)
+# Archived
+
+This repository was archived on 2021-02-04. Published build artifacts for
+Scala and Python continue to exist, but no further updates will be made here.
+
+Mozilla now loads telemetry data to BigQuery and the formats targeted by this
+repository are no longer relevant.
 
 # moztelemetry
 
